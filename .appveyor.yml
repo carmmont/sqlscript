@@ -116,7 +116,8 @@ environment:
 
 # enable service required for build/tests
 services:
-   - SQL2016
+  - mssql2016
+
 #  - iis                 # start IIS
 
 # scripts that run after cloning repository
@@ -165,12 +166,14 @@ before_package:
 
 # scripts to run after build
 after_build:
-        - ps: 7z a sqlscripter.zip './src/sqlscripter/out/*'; 
+        - ps: 7z a sqlscripter.zip './src/sqlscripter/out/*';
+        - ps: 7z a sqlscripterx64.zip './src/sqlscripter/Win64/*'; 
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
     - dotnet restore ./sqlscripter.sln
     - dotnet publish -c Release -o out ./sqlscripter.sln
+    - dotnet publish -c Release -o Win64 --runtime "win-x64" ./sqlscripter.sln
 
 # to disable automatic builds
 #build: off
@@ -216,6 +219,8 @@ test_script:
 artifacts:
     - path: sqlscripter.zip
       name: sqlscripter
+    - path: sqlscripterx64.zip
+      name: sqlscripterx64
 #- path: '.\test\bin\Win32\Release\mg.pdb'
 #  name: mg.pdb
 #- path: win-release.zip
