@@ -116,7 +116,7 @@ environment:
 
 # enable service required for build/tests
 services:
-   - mssql2008r2sp2
+   - SQL2016
 #  - iis                 # start IIS
 
 # scripts that run after cloning repository
@@ -150,7 +150,7 @@ configuration: Release
 
 build:
   parallel: true                  # enable MSBuild parallel builds
-  project: sqlscript.sln      # path to Visual Studio solution or project
+  project: sqlscripter.sln      # path to Visual Studio solution or project
 
   # MSBuild verbosity level
   verbosity: normal
@@ -165,12 +165,12 @@ before_package:
 
 # scripts to run after build
 after_build:
-        #- ps: 7z a win-release.zip ./test/bin/Win32/Release/mg.exe ./test/bin/Win32/Release/mg.pdb; 
+        - ps: 7z a sqlscripter.zip './src/sqlscripter/out/*'; 
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
-    - dotnet restore ./sqlscript.sln
-    - dotnet publish -c Release -o out ./sqlscript.sln
+    - dotnet restore ./sqlscripter.sln
+    - dotnet publish -c Release -o out ./sqlscripter.sln
 
 # to disable automatic builds
 #build: off
@@ -191,15 +191,20 @@ build_script:
 
 # scripts to run before tests
 before_test:
- 
+    - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -Q "CREATE DATABASE TESTDB"
+    - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i ./test/create.sql
+    - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -Q "CREATE DATABASE TESTDB2" 
 
 # scripts to run after tests
 after_test:
 
 # to run your custom scripts instead of automatic tests
 test_script:
-  
-
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -f create.sql
+    - pwsh: (gc .\create.sql | out-string) -eq (gc ./test/create.sql | out-string)
+    - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB2 -i ./create.sql
 # to disable automatic tests
 #test: off
 
@@ -209,8 +214,8 @@ test_script:
 #---------------------------------#
 
 artifacts:
-#- path: '.\test\bin\Win32\Release\mg.exe'
-#  name: mg.exe
+    - path: sqlscripter.zip
+      name: sqlscripter
 #- path: '.\test\bin\Win32\Release\mg.pdb'
 #  name: mg.pdb
 #- path: win-release.zip
