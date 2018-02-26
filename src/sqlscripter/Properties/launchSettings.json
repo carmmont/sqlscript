@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "sqlscripter": {
+      "commandName": "Project",
+      "commandLineArgs": "script -S localhost -U sa -P bits#999 -d MONITORING -t \"Table:[Gathering].[Procedures]\""
+    }
+  }
+}
