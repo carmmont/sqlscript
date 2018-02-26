@@ -138,22 +138,22 @@ install:
 # to add several platforms to build matrix:
 platform:
 #  - x86
-  - Any CPU
+#  - Any CPU
 
 # build Configuration, i.e. Debug, Release, etc.
-configuration: Release
+#configuration: Release
 
 # to add several configurations to build matrix:
 #configuration:
 #  - Debug
 #  - Release
 
-build:
-  parallel: true                  # enable MSBuild parallel builds
-  project: sqlscripter.sln      # path to Visual Studio solution or project
+build: off
+#  parallel: true                  # enable MSBuild parallel builds
+#  project: sqlscripter.sln      # path to Visual Studio solution or project
 
   # MSBuild verbosity level
-  verbosity: normal
+#  verbosity: normal
 
 
 # scripts to run before build
@@ -173,7 +173,7 @@ build_script:
     - dotnet publish -c Release -o out ./sqlscripter.sln
 
 # to disable automatic builds
-build: off
+#build: off
 
 #---------------------------------#
 #       tests configuration       #
