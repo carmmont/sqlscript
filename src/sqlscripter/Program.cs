@@ -19,37 +19,50 @@ namespace sqlscripter
     }
     class Program
     {
+
+        private static bool disable_console = false;
         private static void drawTextProgressBar(int progress, int total)
         {
-            //draw empty progress bar
-            Console.CursorLeft = 0;
-            Console.Write("["); //start
-            Console.CursorLeft = 32;
-            Console.Write("]"); //end
-            Console.CursorLeft = 1;
-            float onechunk = 30.0f / total;
+            if(disable_console)
+                return;
 
-            //draw filled part
-            int position = 1;
-            for (int i = 0; i < onechunk * progress; i++)
+            try
             {
-                Console.BackgroundColor = ConsoleColor.Gray;
-                Console.CursorLeft = position++;
-                Console.Write(" ");
-            }
+                //draw empty progress bar
+                Console.CursorLeft = 0;
+                Console.Write("["); //start
+                Console.CursorLeft = 32;
+                Console.Write("]"); //end
+                Console.CursorLeft = 1;
+                float onechunk = 30.0f / total;
 
-            //draw unfilled part
-            for (int i = position; i <= 31 ; i++)
+                //draw filled part
+                int position = 1;
+                for (int i = 0; i < onechunk * progress; i++)
+                {
+                    Console.BackgroundColor = ConsoleColor.Gray;
+                    Console.CursorLeft = position++;
+                    Console.Write(" ");
+                }
+
+                //draw unfilled part
+                for (int i = position; i <= 31; i++)
+                {
+                    Console.BackgroundColor = ConsoleColor.Green;
+                    Console.CursorLeft = position++;
+                    Console.Write(" ");
+                }
+
+                //draw totals
+                Console.CursorLeft = 35;
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.Write(progress.ToString() + " of " + total.ToString() + "    "); //blanks at the end remove any excess
+            }
+            catch (Exception ex)
             {
-                Console.BackgroundColor = ConsoleColor.Green;
-                Console.CursorLeft = position++;
-                Console.Write(" ");
+                Console.Error.WriteLine("CONSOLE PROGRESS NOT SUPPORTED: " + ex.ToString());
+                disable_console = true;
             }
-
-            //draw totals
-            Console.CursorLeft = 35;
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.Write(progress.ToString() + " of " + total.ToString() + "    "); //blanks at the end remove any excess
         }
 
         static void add_urn_from_query(Database db, string obj, Func<string, string, string> geturn, UrnCollection urns, bool progress = true)
@@ -158,7 +171,7 @@ namespace sqlscripter
             var sqluser = commandLineApplication.Option("-U | --user", "Sql User", CommandOptionType.SingleValue);
             var sqlpsw = commandLineApplication.Option("-P | --psw", "Sql Password", CommandOptionType.SingleValue);
             var sqldb  = commandLineApplication.Option("-d | --database", "Sql Database", CommandOptionType.SingleValue);
-            var useprogress = commandLineApplication.Option("--no-progress", "Disable progress bar", CommandOptionType.NoValue);
+            var nouseprogress = commandLineApplication.Option("--no-progress", "Disable progress bar", CommandOptionType.NoValue);
 
             
             commandLineApplication.Command("dbindex", command =>
@@ -190,6 +203,8 @@ namespace sqlscripter
                     Console.WriteLine("CONNECTED ({0}ms)", DateTime.UtcNow.Subtract(pinned).TotalMilliseconds);
                     pinned = DateTime.UtcNow;
 
+                    //bool display_progress = (!useprogress.HasValue()) && System.Console.h
+
                     bool fast = querymode.HasValue();
 
                     //server.GetSmoObject
@@ -198,11 +213,11 @@ namespace sqlscripter
                      
                     TableCollection tc = db.Tables;
 
-                    add_urns_from_collection(tc, urns, (!useprogress.HasValue()));
+                    add_urns_from_collection(tc, urns, (!nouseprogress.HasValue()));
 
                     if (fast)
                     {
-                        add_urn_from_query(db, "P", (sp, sch) => db.StoredProcedures[sp, sch].Urn, urns, (!useprogress.HasValue()));
+                        add_urn_from_query(db, "P", (sp, sch) => db.StoredProcedures[sp, sch].Urn, urns, (!nouseprogress.HasValue()));
                     }
                     else
                     {
@@ -216,7 +231,7 @@ namespace sqlscripter
 
                     if (fast)
                     {
-                        add_urn_from_query(db, "V", (sp, sch) => db.Views[sp, sch].Urn, urns, (!useprogress.HasValue()));
+                        add_urn_from_query(db, "V", (sp, sch) => db.Views[sp, sch].Urn, urns, (!nouseprogress.HasValue()));
                     }
                     else
                     {
@@ -338,7 +353,7 @@ namespace sqlscripter
                     string outputdir = output.Value() ?? "./";
                                            
                                         
-                   Script(objs, server.Databases[sqldb.Value()], scripter, outputdir, (!useprogress.HasValue()));
+                   Script(objs, server.Databases[sqldb.Value()], scripter, outputdir, (!nouseprogress.HasValue()));
 
                     
                 });
