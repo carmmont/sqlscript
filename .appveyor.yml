@@ -205,7 +205,7 @@ after_test:
 test_script:
     - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -f create.sql
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -o create.sql
     - pwsh: (gc .\create.sql | out-string) -eq (gc ./test/create.sql | out-string)
     - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB2 -i ./create.sql
 # to disable automatic tests
