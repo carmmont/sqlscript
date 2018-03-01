@@ -242,7 +242,7 @@ deploy:
     # Deploy to GitHub Releases
   - provider: GitHub
     release: $(appveyor_repo_tag_name)
-    artifact:  win-release.zip 
+    artifact: sqlscripter.zip
     draft: true
     prerelease: true
     auth_token:
