@@ -204,6 +204,7 @@ after_test:
 # to run your custom scripts instead of automatic tests
 test_script:
     - cd tools
+    - dotnet restore
     - dotnet minicover instrument --workdir ../ --assemblies src/**/bin/**/*.dll --sources src/**/*.cs
     - dotnet minicover reset
     - cd ..
