@@ -207,7 +207,7 @@ test_script:
     - dotnet restore
     - dotnet minicover instrument --workdir ../ --assemblies src/**/out/**/*.dll --sources src/**/*.cs
     - dotnet minicover reset
-    - pwsh: cp ../sqlscripter.deps.json ../src/sqlscripter/out/sqlscripter.deps.json
+    #- pwsh: cp ../sqlscripter.deps.json ../src/sqlscripter/out/sqlscripter.deps.json
     - cd ..
     - dotnet  ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
