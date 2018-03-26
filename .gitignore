@@ -3,4 +3,6 @@ obj/
 .vs/
 *.*~
 *.swp
-
+coverage-hits.txt
+coverage.json
+src/sqlscripter/out/
