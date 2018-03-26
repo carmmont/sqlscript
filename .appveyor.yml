@@ -229,7 +229,7 @@ test_script:
     - echo %APPVEYOR_REPO_COMMIT%
     - echo %APPVEYOR_REPO_BRANCH%
     - dotnet ./minicover/src/minicover/out/dotnet-minicover.dll report --workdir ./ --threshold 80
-    - dotnet ./minicover/src/minicover/out/dotnet-minicover.dll coverallreport --id %APPVEYOR_REPO_COMMIT% --servicename appveyor --output coverall.json --token %coverall% --branch %APPVEYOR_REPO_BRANCH% --remote origin --remote-url https://github.com/aseduto/sqlscript.git --post https://coveralls.io/api/v1/jobs --threshold 80
+    - dotnet ./minicover/src/minicover/out/dotnet-minicover.dll coverallreport --id %APPVEYOR_REPO_COMMIT% --servicename appveyor --output coverall.json --job %APPVEYOR_BUILD_NUMBER% --token %coverall% --branch %APPVEYOR_REPO_BRANCH% --remote origin --remote-url https://github.com/aseduto/sqlscript.git --post https://coveralls.io/api/v1/jobs --threshold 80 --msg "%APPVEYOR_REPO_COMMIT_MESSAGE%"
 
 # to disable automatic tests
 #test: off
