@@ -199,6 +199,7 @@ build_script:
 before_test:
     - git clone https://github.com/aseduto/minicover.git
     - cd minicover
+    - git checkout coverall
     - dotnet restore
     - dotnet publish ./src/minicover/minicover.csproj -o out -c Release
     - cd ..
