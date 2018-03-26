@@ -10,7 +10,7 @@ using System.Data;
 
 namespace sqlscripter
 {
-    struct obj_info
+    class obj_info
     {
         public string type;
         public string name;
@@ -23,45 +23,47 @@ namespace sqlscripter
         private static bool disable_console = false;
         private static void drawTextProgressBar(int progress, int total)
         {
-            if(disable_console)
-                return;
+            if(!disable_console)
+            {    
 
-            try
-            {
-                //draw empty progress bar
-                Console.CursorLeft = 0;
-                Console.Write("["); //start
-                Console.CursorLeft = 32;
-                Console.Write("]"); //end
-                Console.CursorLeft = 1;
-                float onechunk = 30.0f / total;
-
-                //draw filled part
-                int position = 1;
-                for (int i = 0; i < onechunk * progress; i++)
+                try
                 {
-                    Console.BackgroundColor = ConsoleColor.Gray;
-                    Console.CursorLeft = position++;
-                    Console.Write(" ");
+                    //draw empty progress bar
+                    Console.CursorLeft = 0;
+                    Console.Write("["); //start
+                    Console.CursorLeft = 32;
+                    Console.Write("]"); //end
+                    Console.CursorLeft = 1;
+                    float onechunk = 30.0f / total;
+
+                    //draw filled part
+                    int position = 1;
+                    for (int i = 0; i < onechunk * progress; i++)
+                    {
+                        Console.BackgroundColor = ConsoleColor.Gray;
+                        Console.CursorLeft = position++;
+                        Console.Write(" ");
+                    }
+
+                    //draw unfilled part
+                    for (int i = position; i <= 31; i++)
+                    {
+                        Console.BackgroundColor = ConsoleColor.Green;
+                        Console.CursorLeft = position++;
+                        Console.Write(" ");
+                    }
+
+                    //draw totals
+                    Console.CursorLeft = 35;
+                    Console.BackgroundColor = ConsoleColor.Black;
+                    Console.Write(progress.ToString() + " of " + total.ToString() + "    "); //blanks at the end remove any excess
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("CONSOLE PROGRESS NOT SUPPORTED: " + ex.ToString());
+                    disable_console = true;
                 }
 
-                //draw unfilled part
-                for (int i = position; i <= 31; i++)
-                {
-                    Console.BackgroundColor = ConsoleColor.Green;
-                    Console.CursorLeft = position++;
-                    Console.Write(" ");
-                }
-
-                //draw totals
-                Console.CursorLeft = 35;
-                Console.BackgroundColor = ConsoleColor.Black;
-                Console.Write(progress.ToString() + " of " + total.ToString() + "    "); //blanks at the end remove any excess
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine("CONSOLE PROGRESS NOT SUPPORTED: " + ex.ToString());
-                disable_console = true;
             }
         }
 
@@ -136,25 +138,30 @@ namespace sqlscripter
 
         static obj_info ObjectInfo(string obj)
         {
+            obj_info r = null;
+
             if (string.IsNullOrEmpty(obj))
             {
-                return new obj_info() { type = "null" };
+                r = new obj_info() { type = "null" };
             }
 
             if (obj.StartsWith("#"))
             {
-                return new obj_info() { type = "comment" };
+                r = new obj_info() { type = "comment" };
             }
-
-            var m = System.Text.RegularExpressions.Regex.Match(obj, @"([^:]+):\[([^\]]+)\]\.\[([^\]]+)\]");
-
-            var r = new obj_info()
+            
+            if(null == r)
             {
-                type = m.Groups[1].Value
-                , name = m.Groups[3].Value
-                , schema = m.Groups[2].Value
-                , is_type = true
-            };
+                var m = System.Text.RegularExpressions.Regex.Match(obj, @"([^:]+):\[([^\]]+)\]\.\[([^\]]+)\]");
+
+                r = new obj_info()
+                {
+                    type = m.Groups[1].Value
+                    , name = m.Groups[3].Value
+                    , schema = m.Groups[2].Value
+                    , is_type = true
+                };
+            }
 
             return r;
         }
@@ -599,9 +606,9 @@ namespace sqlscripter
             if(dooutput)
                 System.IO.Directory.CreateDirectory(dir);
 
-            string file = System.IO.Path.Combine(dir, $"{oi.schema}.{oi.name}.sql");
+            return System.IO.Path.Combine(dir, $"{oi.schema}.{oi.name}.sql");
             
-            return file;
+            //return file;
         }
 
         
