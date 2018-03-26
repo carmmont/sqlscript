@@ -87,6 +87,9 @@ hosts:
 environment:
   my_var1: value1
   my_var2: value2
+  coverall:
+    secure: 2dkcctTsGqQPGWhvydzFChjctp33OSEkfclaRYUDWkmDIV0uxgSZ4j3rvHMZakm3
+  
   # this is how to set encrypted variable. Go to "Encrypt data" page in account menu to encrypt data.
   #my_secure_var1:
   #  secure: FW3tJ3fMncxvs58/ifSP7w==
@@ -194,6 +197,11 @@ build_script:
 
 # scripts to run before tests
 before_test:
+    - git clone https://github.com/aseduto/minicover.git
+    - cd minicover
+    - dotnet restore
+    - dotnet publish ./src/minicover/minicover.csproj -o out -c Release
+    - cd ..
     - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -Q "CREATE DATABASE TESTDB"
     - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i ./test/create.sql
     - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -Q "CREATE DATABASE TESTDB2" 
@@ -203,22 +211,23 @@ after_test:
 
 # to run your custom scripts instead of automatic tests
 test_script:
-    - cd tools
-    - dotnet restore
-    - dotnet minicover instrument --workdir ../ --assemblies src/**/out/**/*.dll --sources src/**/*.cs
-    - dotnet minicover reset
-    #- pwsh: cp ../sqlscripter.deps.json ../src/sqlscripter/out/sqlscripter.deps.json
-    - cd ..
+    #- cd tools
+    #- dotnet restore
+    #- dotnet minicover instrument --workdir ../ --assemblies src/**/out/**/*.dll --sources src/**/*.cs
+    #- dotnet minicover reset
+    #- cd ..
+    - dotnet ./minicover/src/minicover/dotnet-minicover.dll instrument --workdir ./ --assemblies src/**/out/**/*.dll --sources src/**/*.cs
     - dotnet  ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -o create.sql
-    #- dotnet run ./src/sqlscripter/sqlscripter.csproj --no-build -- dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
-    #- dotnet ./src/sqlscripter/out/sqlscripter.dll script -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
-    #- dotnet run -p ./src/sqlscripter/sqlscripter.csproj -c Release --no-build -- build -i index.txt -o create.sql
     - pwsh: (gc .\create.sql | out-string) -eq (gc ./test/create.sql | out-string)
     - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB2 -i ./create.sql
-    - cd tools
-    - dotnet minicover report --workdir ../ --threshold 90
+    #- cd tools
+    #- dotnet minicover report --workdir ../ --threshold 90
+    - pwsh: ls env: | ? {-Not ($_.name -match 'coverall')}
+    - dotnet ./minicover/src/minicover/dotnet-minicover.dll report --workdir ../ --threshold 80
+    - dotnet ./minicover/src/minicover/dotnet-minicover.dll coverallreport --id $(APPVEYOR_REPO_COMMIT) --servicename appveyor --output coverall.json --token $(coverall) --branch $(APPVEYOR_REPO_BRANCH) --remote origin --remote-url https://github.com/aseduto/sqlscript.git --post https://coveralls.io/api/v1/jobs --threshold 80
+
 # to disable automatic tests
 #test: off
 
