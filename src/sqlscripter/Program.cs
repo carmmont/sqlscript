@@ -472,7 +472,7 @@ namespace sqlscripter
                     });
             });
 
-            commandLineApplication.HelpOption("-h | --help");
+            commandLineApplication.HelpOption("-h | --help", inherited: true);
 
             try
             {

@@ -166,13 +166,14 @@ before_build:
 # scripts to run *after* solution is built and *before* automatic packaging occurs (web apps, NuGet packages
 # , Azure Cloud Services)
 before_package:
-    - dotnet pack -c Release -o Pack ./sqlscripter.sln
+    
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
     - dotnet restore ./sqlscripter.sln
     - dotnet publish -c Release -o out ./sqlscripter.sln
     - dotnet publish -c Release -o Win64 --runtime "win-x64" ./sqlscripter.sln
+    - dotnet pack -c Release -o Pack ./sqlscripter.sln
 
 # scripts to run after build
 after_build:
@@ -207,10 +208,9 @@ after_test:
 
 # to run your custom scripts instead of automatic tests
 test_script:
-
-    - dotnet  ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -o create.sql
+    - dotnet  ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress 
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -o create.sql --no-progress
     - pwsh: (gc .\create.sql | out-string) -eq (gc ./test/create.sql | out-string)
     - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB2 -i ./create.sql
     #- cd tools
