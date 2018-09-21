@@ -21,10 +21,12 @@ namespace sqlscripter
     {
 
         private static bool disable_console = false;
-        private static void drawTextProgressBar(int progress, int total)
+        private static void drawTextProgressBar(int progress, int total, string info = "")
         {
             if(!disable_console)
             {    
+
+                ConsoleColor original = Console.BackgroundColor;
 
                 try
                 {
@@ -34,7 +36,7 @@ namespace sqlscripter
                     Console.CursorLeft = 32;
                     Console.Write("]"); //end
                     Console.CursorLeft = 1;
-                    float onechunk = 30.0f / total;
+                    float onechunk = 31.0f / total;
 
                     //draw filled part
                     int position = 1;
@@ -55,8 +57,27 @@ namespace sqlscripter
 
                     //draw totals
                     Console.CursorLeft = 35;
-                    Console.BackgroundColor = ConsoleColor.Black;
-                    Console.Write(progress.ToString() + " of " + total.ToString() + "    "); //blanks at the end remove any excess
+                    Console.BackgroundColor = original;
+
+                    string output = progress.ToString() + " of " + total.ToString() + " " + info;
+
+                    int width = 80;
+
+                    if (output.Length > width)
+                    {
+                        output = output.Substring(0, width);
+                    }
+
+                    if (output.Length < width)
+                    {
+                        output = output.PadRight(width);
+                    }
+
+                    Console.Write(output); //blanks at the end remove any excess
+                    //Console.Write(progress.ToString() + " of " + total.ToString() + "    "); //blanks at the end remove any excess
+                    if(progress >= total)
+                        Console.WriteLine();
+
                 }
                 catch (Exception ex)
                 {
@@ -77,12 +98,12 @@ namespace sqlscripter
                     on o.schema_id = s.schema_id where type = '" + obj + "'");
 
             int count = ds.Tables[0].Rows.Count;
-            int idx = 1;
+            int idx = 0;
            
             foreach (DataRow r in ds.Tables[0].Rows)
             {
                     if(progress)
-                        drawTextProgressBar(idx++, count);
+                        drawTextProgressBar(++idx, count);
                 //urns.Add(db.StoredProcedures[r[1].ToString(), r[0].ToString()].Urn);
                 urns.Add(geturn(r[1].ToString(), r[0].ToString()));
                         
@@ -97,12 +118,12 @@ namespace sqlscripter
             Console.WriteLine("PROCESSING {0}", coll.GetType().Name);
 
             int count = coll.Count;
-            int idx = 1;
+            int idx = 0;
 
             foreach (SqlSmoObject ob in coll)
             {
                 if(progress)
-                    drawTextProgressBar(idx++, count);
+                    drawTextProgressBar(++idx, count);
 
                 if (ob is StoredProcedure)
                 {
@@ -152,7 +173,15 @@ namespace sqlscripter
             
             if(null == r)
             {
-                var m = System.Text.RegularExpressions.Regex.Match(obj, @"([^:]+):\[([^\]]+)\]\.\[([^\]]+)\]");
+                string rx = @"([^:]+):\[([^\]]+)\]\.\[([^\]]+)\]";
+
+                if (!System.Text.RegularExpressions.Regex.IsMatch(obj, rx))
+                {
+                    throw new ScripterException($"Invalid Object Name used: {obj} does not match {rx}");
+                }
+
+
+                var m = System.Text.RegularExpressions.Regex.Match(obj, rx);
 
                 r = new obj_info()
                 {
@@ -400,11 +429,17 @@ namespace sqlscripter
                         {
                             string indexfilepath = System.IO.Path.GetFullPath(indexfile);
 
+                            System.Console.WriteLine("Adding " + System.IO.Path.GetFileName(indexfile));
+
                             string[] types = System.IO.File.ReadAllLines(indexfilepath);
+
+                            int types_count = 0;
                             
                             foreach (string tt in types)
                             {
                                 obj_info oi = ObjectInfo(tt);
+
+                                drawTextProgressBar(++types_count, types.Length, $" ({tt}) ");
 
                                 if (oi.is_type)
                                 {
@@ -474,7 +509,7 @@ namespace sqlscripter
             SqlSmoObject[] objs = new SqlSmoObject[1];
           
             int count = target.Length;
-            int jdx = 1;
+            int jdx = 0;
             
             
             foreach (string obname in target)
@@ -545,7 +580,7 @@ namespace sqlscripter
 
                 if (null != output && progress)
                 {                    
-                    drawTextProgressBar(jdx++, count);
+                    drawTextProgressBar(++jdx, count);
                 }
 
                 Script(scripter, objs, file);
@@ -597,14 +632,16 @@ namespace sqlscripter
 
         private static string FilePath(string output, obj_info oi, bool dooutput = true)
         {
+            
             string prefix = oi.type + "s";
 
             string dir = System.IO.Path.GetFullPath(
                                         System.IO.Path.Combine(output, prefix)
                                         );
 
-            if(dooutput)
+            if (dooutput)
                 System.IO.Directory.CreateDirectory(dir);
+            
 
             return System.IO.Path.Combine(dir, $"{oi.schema}.{oi.name}.sql");
             
