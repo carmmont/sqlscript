@@ -198,12 +198,6 @@ after_build:
 
 # scripts to run before tests
 before_test:
-    - git clone https://github.com/aseduto/minicover.git
-    - cd minicover
-    - git checkout coverall
-    - dotnet restore
-    - dotnet publish ./src/minicover/minicover.csproj -o out -c Release
-    - cd ..
     - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -Q "CREATE DATABASE TESTDB"
     - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i ./test/create.sql
     - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -Q "CREATE DATABASE TESTDB2" 
@@ -213,12 +207,7 @@ after_test:
 
 # to run your custom scripts instead of automatic tests
 test_script:
-    #- cd tools
-    #- dotnet restore
-    #- dotnet minicover instrument --workdir ../ --assemblies src/**/out/**/*.dll --sources src/**/*.cs
-    #- dotnet minicover reset
-    #- cd ..
-    - dotnet ./minicover/src/minicover/out/dotnet-minicover.dll instrument --workdir ./ --assemblies src/**/out/**/*.dll --sources src/**/*.cs
+
     - dotnet  ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -o create.sql
@@ -229,8 +218,7 @@ test_script:
     #- pwsh: ls env: | ? {-Not ($_.name -match 'coverall')}
     - echo %APPVEYOR_REPO_COMMIT%
     - echo %APPVEYOR_REPO_BRANCH%
-    - dotnet ./minicover/src/minicover/out/dotnet-minicover.dll report --workdir ./ --threshold 80
-    - dotnet ./minicover/src/minicover/out/dotnet-minicover.dll coverallreport --id %APPVEYOR_REPO_COMMIT% --servicename appveyor --output coverall.json --job %APPVEYOR_BUILD_NUMBER% --token %coverall% --branch %APPVEYOR_REPO_BRANCH% --remote origin --remote-url https://github.com/aseduto/sqlscript.git --post https://coveralls.io/api/v1/jobs --threshold 80 --msg "%APPVEYOR_REPO_COMMIT_MESSAGE%"
+    
 
 # to disable automatic tests
 #test: off

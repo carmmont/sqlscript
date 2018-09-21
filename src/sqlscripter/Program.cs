@@ -23,6 +23,20 @@ namespace sqlscripter
         private static bool disable_console = false;
         private static void drawTextProgressBar(int progress, int total, string info = "")
         {
+            string output = progress.ToString() + " of " + total.ToString() + " " + info;
+
+            int width = 80;
+
+            if (output.Length > width)
+            {
+                output = output.Substring(0, width);
+            }
+
+            if (output.Length < width)
+            {
+                output = output.PadRight(width);
+            }
+
             if(!disable_console)
             {    
 
@@ -59,24 +73,15 @@ namespace sqlscripter
                     Console.CursorLeft = 35;
                     Console.BackgroundColor = original;
 
-                    string output = progress.ToString() + " of " + total.ToString() + " " + info;
-
-                    int width = 80;
-
-                    if (output.Length > width)
-                    {
-                        output = output.Substring(0, width);
-                    }
-
-                    if (output.Length < width)
-                    {
-                        output = output.PadRight(width);
-                    }
+                    
 
                     Console.Write(output); //blanks at the end remove any excess
                     //Console.Write(progress.ToString() + " of " + total.ToString() + "    "); //blanks at the end remove any excess
                     if(progress >= total)
                         Console.WriteLine();
+
+
+                    return;
 
                 }
                 catch (Exception ex)
@@ -86,6 +91,9 @@ namespace sqlscripter
                 }
 
             }
+            
+            System.Console.WriteLine(output);
+
         }
 
         static void add_urn_from_query(Database db, string obj, Func<string, string, string> geturn, UrnCollection urns, bool progress = true)
