@@ -2,7 +2,7 @@
   "profiles": {
     "sqlscripter": {
       "commandName": "Project",
-      "commandLineArgs": "build -i index-schemas.txt -i update.txt -i index-tables.txt -i index-synonyms.txt -i index-views.txt  -i index-userdefinedfunctions.txt -i index-storedprocedures.txt -o dbmaintall.sql ",
+      "commandLineArgs": "script -S localhost -U sa -P bits#999 -d dbmaint -i a:\\tmp\\db.txt -o a:\\tmp",
       "workingDirectory": "A:\\Alessandro\\My Projects\\bitbucket\\dbmaintenance"
     }
   }

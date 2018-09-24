@@ -21,6 +21,8 @@ namespace sqlscripter
     {
 
         private static bool disable_console = false;
+        private static bool disable_console_error = false;
+
         private static void drawTextProgressBar(int progress, int total, string info = "")
         {
             string output = progress.ToString() + " of " + total.ToString() + " " + info;
@@ -37,62 +39,66 @@ namespace sqlscripter
                 output = output.PadRight(width);
             }
 
-            if(!disable_console)
-            {    
-
-                ConsoleColor original = Console.BackgroundColor;
-
-                try
+            if (!disable_console)
+            {
+                if (!disable_console_error)
                 {
-                    //draw empty progress bar
-                    Console.CursorLeft = 0;
-                    Console.Write("["); //start
-                    Console.CursorLeft = 32;
-                    Console.Write("]"); //end
-                    Console.CursorLeft = 1;
-                    float onechunk = 31.0f / total;
 
-                    //draw filled part
-                    int position = 1;
-                    for (int i = 0; i < onechunk * progress; i++)
+                    ConsoleColor original = Console.BackgroundColor;
+
+                    try
                     {
-                        Console.BackgroundColor = ConsoleColor.Gray;
-                        Console.CursorLeft = position++;
-                        Console.Write(" ");
+                        //draw empty progress bar
+                        Console.CursorLeft = 0;
+                        Console.Write("["); //start
+                        Console.CursorLeft = 32;
+                        Console.Write("]"); //end
+                        Console.CursorLeft = 1;
+                        float onechunk = 31.0f / total;
+
+                        //draw filled part
+                        int position = 1;
+                        for (int i = 0; i < onechunk * progress; i++)
+                        {
+                            Console.BackgroundColor = ConsoleColor.Gray;
+                            Console.CursorLeft = position++;
+                            Console.Write(" ");
+                        }
+
+                        //draw unfilled part
+                        for (int i = position; i <= 31; i++)
+                        {
+                            Console.BackgroundColor = ConsoleColor.Green;
+                            Console.CursorLeft = position++;
+                            Console.Write(" ");
+                        }
+
+                        //draw totals
+                        Console.CursorLeft = 35;
+                        Console.BackgroundColor = original;
+
+
+
+                        Console.Write(output); //blanks at the end remove any excess
+                                               //Console.Write(progress.ToString() + " of " + total.ToString() + "    "); //blanks at the end remove any excess
+                        if (progress >= total)
+                            Console.WriteLine();
+
+
+                        return;
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.Error.WriteLine("CONSOLE PROGRESS NOT SUPPORTED: " + ex.ToString());
+                        disable_console_error = true;
                     }
 
-                    //draw unfilled part
-                    for (int i = position; i <= 31; i++)
-                    {
-                        Console.BackgroundColor = ConsoleColor.Green;
-                        Console.CursorLeft = position++;
-                        Console.Write(" ");
-                    }
-
-                    //draw totals
-                    Console.CursorLeft = 35;
-                    Console.BackgroundColor = original;
-
-                    
-
-                    Console.Write(output); //blanks at the end remove any excess
-                    //Console.Write(progress.ToString() + " of " + total.ToString() + "    "); //blanks at the end remove any excess
-                    if(progress >= total)
-                        Console.WriteLine();
-
-
-                    return;
-
                 }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine("CONSOLE PROGRESS NOT SUPPORTED: " + ex.ToString());
-                    disable_console = true;
-                }
+                
+                System.Console.WriteLine(output);
 
             }
-            
-            System.Console.WriteLine(output);
 
         }
 
@@ -217,10 +223,33 @@ namespace sqlscripter
             var sqldb  = commandLineApplication.Option("-d | --database", "Sql Database", CommandOptionType.SingleValue);
             var nouseprogress = commandLineApplication.Option("--no-progress", "Disable progress bar", CommandOptionType.NoValue);
 
+            commandLineApplication.Command("info", command =>
+            {
+                    command.Options.AddRange(command.Parent.Options);
+                    command.Description = $"{command.Name} render server informations";
+
+                    command.OnExecute( () =>
+                    {                   
+                    
+                        ServerConnection serverConnection = new ServerConnection(sqlserver.Value(), sqluser.Value(), sqlpsw.Value());
+                        Server server = new Server(serverConnection);
+
+                        System.Console.WriteLine("Databases:");
+                        foreach(var db in server.Databases)
+                        {
+                            System.Console.WriteLine($"\t{db}");
+                        }
+
+                    });
+                    
+            });
             
             commandLineApplication.Command("dbindex", command =>
             {
                 command.Options.AddRange(command.Parent.Options);
+
+                command.Description = $"{command.Name} allow to connect to a database and build an ordered index of all objects";
+                                
 
                 var indexfile = command.Option("-i | --index", "Generate Index File", CommandOptionType.SingleValue);
                 var querymode = command.Option("--query-mode", "Use object query for objects", CommandOptionType.NoValue);
@@ -356,6 +385,8 @@ namespace sqlscripter
             commandLineApplication.Command("script", command =>
             {
                 command.Options.AddRange(command.Parent.Options);
+
+                command.Description = $"{command.Name} allows to script objects listed in a file or in the command line";
 
                 var target = command.Option("-t | --target", "Sql target Object", CommandOptionType.MultipleValue);
                 var output = command.Option("-o | --output", "Script Output", CommandOptionType.SingleValue);
@@ -529,6 +560,7 @@ namespace sqlscripter
                 
                 if ("null" == oi.type || "comment" == oi.type)
                 {
+                    jdx++;
                     continue;
                 }
 
@@ -545,8 +577,8 @@ namespace sqlscripter
 
                 if ("Table" == oi.type)
                 {
+                    scripter.Options.DriDefaults = true;
                     objs[0] = db.Tables[oi.name, oi.schema];
-
                 }
 
                 if ("StoredProcedure" == oi.type)
@@ -582,6 +614,13 @@ namespace sqlscripter
                     objs[0] = db.UserDefinedTypes[oi.name, oi.schema];
 
                 }
+
+                if ("Schema" == oi.type)
+                {
+                    objs[0] = db.Schemas[oi.name];
+                }
+
+                
 
                 //DependencyTree tr = scripter.DiscoverDependencies(objs, true);
                 //DependencyCollection dc = scripter.WalkDependencies(tr);
@@ -621,6 +660,13 @@ namespace sqlscripter
                     )
                     continue;
 
+                string defaultrx = @"IF NOT EXISTS \(SELECT \* FROM sys.objects WHERE object_id = OBJECT_ID\(N'\[([^\]]+)\]\.\[([^\]]+)\]'\) AND type = 'D'\)";
+
+                if (System.Text.RegularExpressions.Regex.IsMatch(sql, defaultrx))
+                {
+                    sql = fixdefault(sql, defaultrx);
+                }
+
                 if (file == null)
                 {
                     Console.WriteLine("GO");
@@ -636,6 +682,16 @@ namespace sqlscripter
             }
 
             
+        }
+
+        private static string fixdefault(string sql, string defaultrx)
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(sql, defaultrx);
+
+            string defaultsql = $"ADD CONSTRAINT {m.Groups[2].Value} DEFAULT";
+
+            return sql.Replace("ADD  DEFAULT", defaultsql);
+
         }
 
         private static string FilePath(string output, obj_info oi, bool dooutput = true)
