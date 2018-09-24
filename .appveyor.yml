@@ -147,6 +147,8 @@ test_script:
     - dotnet ./minicover/src/MiniCover/out/dotnet-minicover.dll instrument --workdir ./ --assemblies src/**/out/**/*.dll --sources src/**/*.cs
     - dotnet ./src/sqlscripter/out/sqlscripter.dll info -S "(local)\SQL2016" -U sa -P "Password12!" 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress 
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index2.txt --no-progress --query-mode
+    - pwsh: (gc ./index.txt | out-string) -eq (gc ./index2.txt | out-string) 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress
     # [Gathering].[Exec_Query_Plans_1]
     - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -o create.sql --no-progress

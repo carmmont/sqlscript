@@ -8,7 +8,9 @@
     <RepositoryUrl>https://github.com/aseduto/sqlscript</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>sqlserver</PackageTags>
-    <Version>0.0.1</Version>
+    <Version>$(BuildNumber)</Version>
+    <Description>Sql Scripter is an opinionated tool to implement a complex CI/CD pipeline on sql server while being source control freandly.</Description>
+    <Copyright>aseduto</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
