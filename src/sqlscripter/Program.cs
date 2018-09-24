@@ -166,8 +166,9 @@ namespace sqlscripter
         static string NormalizeUrn(string urn)
         {
             //Server[@Name='4f4c6527222b']/Database[@Name='MONITORING']/Table[@Name='Procedures' and @Schema='Gathering']
-            var m = System.Text.RegularExpressions.Regex.Match(urn, @"Server\[@Name='[^']+'\]/Database\[@Name='([^']+)'\]/([^\[]+)\[@Name='([^']+)' and @Schema='([^']+)'\]");
+            //var m = System.Text.RegularExpressions.Regex.Match(urn, @"Server\[@Name='[^']+'\]/Database\[@Name='([^']+)'\]/([^\[]+)\[@Name='([^']+)' and @Schema='([^']+)'\]");
 
+            var m = System.Text.RegularExpressions.Regex.Match(urn, @"Server\[@Name='[^']+'\]/Database\[@Name='([^']+)'\]/([^\[]+)\[@Name='([^']+)'(?: and @Schema='([^']+)'){0,1}\]");
             return $"{m.Groups[2].Value}:[{m.Groups[4].Value}].[{m.Groups[3].Value}]";
         }
 
@@ -187,7 +188,7 @@ namespace sqlscripter
             
             if(null == r)
             {
-                string rx = @"([^:]+):\[([^\]]+)\]\.\[([^\]]+)\]";
+                string rx = @"([^:]+):\[([^\]]*)\]\.\[([^\]]+)\]";
 
                 if (!System.Text.RegularExpressions.Regex.IsMatch(obj, rx))
                 {
@@ -274,6 +275,7 @@ namespace sqlscripter
                     scripter.Options = op;
 
                     UrnCollection urns = new UrnCollection();
+                    List<Microsoft.SqlServer.Management.Sdk.Sfc.Urn> preobjects = new List<Microsoft.SqlServer.Management.Sdk.Sfc.Urn>();
 
                     Console.WriteLine("CONNECTED ({0}ms)", DateTime.UtcNow.Subtract(pinned).TotalMilliseconds);
                     pinned = DateTime.UtcNow;
@@ -282,13 +284,25 @@ namespace sqlscripter
 
                     bool fast = querymode.HasValue();
 
+                    Database db = server.Databases[sqldb.Value()];
+
                     //server.GetSmoObject
 
-                    Database db = server.Databases[sqldb.Value()];
+                    SchemaCollection sc = db.Schemas;
+
+                    foreach (Schema schema in sc)
+                    {
+                        if (!schema.IsSystemObject)
+                        {
+                            preobjects.Add(schema.Urn);
+                        }
+                    }
+                                        
                      
                     TableCollection tc = db.Tables;
 
                     add_urns_from_collection(tc, urns, (!nouseprogress.HasValue()));
+
 
                     if (fast)
                     {
@@ -318,11 +332,19 @@ namespace sqlscripter
                     
                     var ss = server.Databases[sqldb.Value()].Synonyms;
 
-                    add_urns_from_collection(ss, urns); 
+                    add_urns_from_collection(ss, urns);
 
-                    var ff = server.Databases[sqldb.Value()].UserDefinedFunctions;
+                    if (fast)
+                    {
+                        add_urn_from_query(db, "IF", (sp, sch) => db.UserDefinedFunctions[sp, sch].Urn, urns, (!nouseprogress.HasValue()));
+                    }
+                    else
+                    {
 
-                    add_urns_from_collection(ff, urns); 
+                        var ff = server.Databases[sqldb.Value()].UserDefinedFunctions;
+
+                        add_urns_from_collection(ff, urns);
+                    }
 
                     var tt = server.Databases[sqldb.Value()].UserDefinedTypes;
 
@@ -348,26 +370,20 @@ namespace sqlscripter
 
                         System.IO.File.AppendAllText(path, "#file auto-generated" + Environment.NewLine);
                     }
+
+                    foreach (Microsoft.SqlServer.Management.Sdk.Sfc.Urn urn in preobjects)
+                    {
+                        UrnToIndex(path, urn);
+                    }
                     
                     foreach (DependencyCollectionNode j in dc)
                     {
-                        //Console.Write("\ttree\t");
-                        //    Console.Write(j.Urn);
-                        //        Console.Write("\t");
-                        //            Console.WriteLine(j.IsRootNode);
 
-                        if (null != path)
-                        {
-                            System.IO.File.AppendAllText(path, NormalizeUrn(j.Urn) + Environment.NewLine);
-                            //System.IO.File.AppendAllText(path,  );
-                        }
-                        else
-                        {
-                            Console.Write(NormalizeUrn(j.Urn));
-                        }
+                        Microsoft.SqlServer.Management.Sdk.Sfc.Urn urn = j.Urn;
+                        UrnToIndex(path, urn);
                     }
 
-                    //scripter.Script(
+
 
                     return 0;
                 });
@@ -524,6 +540,19 @@ namespace sqlscripter
             }
         }
 
+        private static void UrnToIndex(string path, Microsoft.SqlServer.Management.Sdk.Sfc.Urn urn)
+        {
+            if (null != path)
+            {
+                System.IO.File.AppendAllText(path, NormalizeUrn(urn) + Environment.NewLine);
+
+            }
+            else
+            {
+                Console.Write(NormalizeUrn(urn));
+            }
+        }
+
         /*
         private static void ProcessDirs(string[] pretypes, string outputfile)
         {
@@ -623,8 +652,7 @@ namespace sqlscripter
                 {
                     objs[0] = db.Schemas[oi.name];
                 }
-
-                
+                                
 
                 //DependencyTree tr = scripter.DiscoverDependencies(objs, true);
                 //DependencyCollection dc = scripter.WalkDependencies(tr);

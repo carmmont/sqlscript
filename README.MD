@@ -5,5 +5,23 @@
 
 
 
-## Sql Scripter
+# Sql Scripter
+
+Sql Scripter is an opinionated tool to implement a complex CI/CD pipeline on sql server while being source control freandly.
+
+## Create a Full script of a database respecting dependency
+
+```
+sqlscripter dbindex -S <database> -U <user> -P <password> -d <dbtarget> -i <index-file> --query-mode
+```
+
+```
+sqlscripter script -S <database> -U <user> -P <password> -d <dbtarget> -i <index-file> -o <output-directory>
+```
+
+```
+sqlscripter build -S <database> -U <user> -P <password> -d <dbtarget> -i <index-file> -o <output-file>
+```
+
+
 

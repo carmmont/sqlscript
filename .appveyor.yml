@@ -152,6 +152,8 @@ test_script:
     - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -o create.sql --no-progress
     - pwsh: (gc .\create.sql | out-string) -eq (gc ./test/create.sql | out-string)
     - sqlcmd -b -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB2 -i ./create.sql
+    #idempotent
+    - sqlcmd -b -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB2 -i ./create.sql
     #- cd tools
     #- dotnet minicover report --workdir ../ --threshold 90
     #- pwsh: ls env: | ? {-Not ($_.name -match 'coverall')}
@@ -198,9 +200,16 @@ deploy:
     draft: true
     prerelease: true
     auth_token:
-        secure: hRuWi7itZDVgtJo58zJ/Ijk5N73iV6pr2DB9HCZGNGWaHpnQUukAtYlmJgfS+d05
+        secure: OGsnt+Yh/2jNrAJ8kgslOcYuRbtyrgKj/CHHyEIEC0YsJQE6FxpqtLPrvihxQYx/
     on:
      appveyor_repo_tag: true       # deploy on tag push only
+  - provider: NuGet
+    api_key:
+      secure: YSawB0BDx6YjIM3itCGTjA2I81T3UMuyhE5z0NZI7XvvZXZtOtd0YXen7VkcVBKT
+    artifact: ./src/sqlscripter/Pack/.*\.nupkg/
+    on:
+     appveyor_repo_tag: true       # deploy on tag push only
+
 
    
 

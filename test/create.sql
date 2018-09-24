@@ -1,9 +1,16 @@
 
-IF NOT EXISTS(SELECT * FROM sys.schemas WHERE [name] = 'Gathering')
-BEGIN
-	EXEC('CREATE SCHEMA [Gathering] AUTHORIZATION [dbo]')
-END
+GO
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = N'Gathering')
+EXEC sys.sp_executesql N'CREATE SCHEMA [Gathering]'
 
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[TABLE1]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [dbo].[TABLE1](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[NAME] [nvarchar](255) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+) ON [PRIMARY]
+END
 GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Gathering].[Exec_Query_Plans_1]') AND type in (N'U'))
 BEGIN
@@ -44,26 +51,18 @@ CREATE NONCLUSTERED INDEX [IX_Exec_Query_Plans_1] ON [Gathering].[Exec_Query_Pla
 	[plan_handle] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 GO
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Gathering].[TIMESTAMP_DEFAULT]') AND type = 'D')
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Gathering].[DF__Exec_Quer__times__37A5467C]') AND type = 'D')
 BEGIN
-ALTER TABLE [Gathering].[Exec_Query_Plans_1] ADD DEFAULT (getdate()) FOR [timestamp]
+ALTER TABLE [Gathering].[Exec_Query_Plans_1] ADD CONSTRAINT DF__Exec_Quer__times__37A5467C DEFAULT (getdate()) FOR [timestamp]
 END
 
-
-GO
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[TABLE1]') AND type in (N'U'))
-BEGIN
-CREATE TABLE [dbo].[TABLE1](
-	[ID] [int] IDENTITY(1,1) NOT NULL,
-	[NAME] [nvarchar](255) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
-) ON [PRIMARY]
-END
 GO
 DROP PROCEDURE IF EXISTS [dbo].[GET_ITEMS]
 GO
 create procedure GET_ITEMS
 AS
     SELECT ID, NAME FROM TABLE1 
+
 
 
 GO
@@ -75,13 +74,17 @@ AS
 
 
 GO
-
+DROP VIEW IF EXISTS [dbo].[view_1]
+GO
 create view view_1
 as
 SELECT        TABLE1.*
 FROM            TABLE1
-
-
+GO
+IF NOT EXISTS (SELECT * FROM sys.synonyms WHERE name = N'TABLE2' AND schema_id = SCHEMA_ID(N'dbo'))
+CREATE SYNONYM [dbo].[TABLE2] FOR [TESTDB].[dbo].[TABLE1]
+GO
+DROP FUNCTION IF EXISTS [dbo].[FFF]
 GO
 
 CREATE FUNCTION FFF
@@ -94,5 +97,3 @@ RETURN
 	-- Add the SELECT statement with parameter references here
 	SELECT 0 AS S
 )
-GO
-
