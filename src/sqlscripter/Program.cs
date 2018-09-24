@@ -258,6 +258,8 @@ namespace sqlscripter
                 {                   
                     DateTime pinned = DateTime.UtcNow;
 
+                    disable_console = nouseprogress.HasValue();
+
                     ServerConnection serverConnection = new ServerConnection(sqlserver.Value(), sqluser.Value(), sqlpsw.Value());
                     Server server = new Server(serverConnection);
 
@@ -395,6 +397,8 @@ namespace sqlscripter
                 command.OnExecute(() =>
                 {
                 
+                    disable_console = nouseprogress.HasValue();
+
                     ServerConnection serverConnection = new ServerConnection(sqlserver.Value(), sqluser.Value(), sqlpsw.Value());
                     Server server = new Server(serverConnection);
 
