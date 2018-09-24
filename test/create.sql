@@ -1,4 +1,8 @@
 
+IF NOT EXISTS(SELECT * FROM sys.schemas WHERE [name] = 'Gathering')
+BEGIN
+	EXEC('CREATE SCHEMA [Gathering] AUTHORIZATION [dbo]')
+END
 
 GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Gathering].[Exec_Query_Plans_1]') AND type in (N'U'))
@@ -42,7 +46,7 @@ CREATE NONCLUSTERED INDEX [IX_Exec_Query_Plans_1] ON [Gathering].[Exec_Query_Pla
 GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Gathering].[TIMESTAMP_DEFAULT]') AND type = 'D')
 BEGIN
-ALTER TABLE [Gathering].[Exec_Query_Plans_1] ADD  CONSTRAINT [TIMESTAMP_DEFAULT]  DEFAULT (getdate()) FOR [timestamp]
+ALTER TABLE [Gathering].[Exec_Query_Plans_1] ADD DEFAULT (getdate()) FOR [timestamp]
 END
 
 
@@ -68,4 +72,27 @@ GO
 create procedure NEW_ITEM(@NAME NVARCHAR(255))
 AS
     INSERT INTO TABLE1 (NAME) VALUES (@NAME)
+
+
+GO
+
+create view view_1
+as
+SELECT        TABLE1.*
+FROM            TABLE1
+
+
+GO
+
+CREATE FUNCTION FFF
+(	
+	
+)
+RETURNS TABLE 
+RETURN 
+(
+	-- Add the SELECT statement with parameter references here
+	SELECT 0 AS S
+)
+GO
 
