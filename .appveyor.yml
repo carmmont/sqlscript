@@ -102,7 +102,7 @@ build_script:
     - dotnet publish -c Release -o out ./sqlscripter.sln
     - dotnet publish -c Release -o Win64 --runtime "win-x64" ./sqlscripter.sln
     - dotnet pack -c Release -o Pack ./sqlscripter.sln
-    - ls Pack
+
 
 # scripts to run after build
 after_build:
