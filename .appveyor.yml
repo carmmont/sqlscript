@@ -102,7 +102,7 @@ build_script:
     - pwsh: dotnet restore ./sqlscripter.sln
     - pwsh: dotnet publish -c Release -o out ./sqlscripter.sln /p:BuildNumber=$env:VERSION
     - pwsh: dotnet publish -c Release -o Win64 --runtime "win-x64" ./sqlscripter.sln /p:BuildNumber=$env:VERSION
-    - pwsh: dotnet pack -c Release -o Pack ./sqlscripter.sln
+    - pwsh: dotnet pack -c Release -o Pack ./sqlscripter.sln /p:BuildNumber=$env:VERSION
 
 
 # scripts to run after build
