@@ -98,10 +98,11 @@ before_package:
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
-    - dotnet restore ./sqlscripter.sln
-    - dotnet publish -c Release -o out ./sqlscripter.sln
-    - dotnet publish -c Release -o Win64 --runtime "win-x64" ./sqlscripter.sln
-    - dotnet pack -c Release -o Pack ./sqlscripter.sln
+    - pwsh: if($env:APPVEYOR_REPO_TAG){$env:VERSION=$env:APPVEYOR_REPO_TAG_NAME}else{$env:VERSION=$env:APPVEYOR_BUILD_VERSION}
+    - pwsh: dotnet restore ./sqlscripter.sln
+    - pwsh: dotnet publish -c Release -o out ./sqlscripter.sln /p:BuildNumber=$env:VERSION
+    - pwsh: dotnet publish -c Release -o Win64 --runtime "win-x64" ./sqlscripter.sln /p:BuildNumber=$env:VERSION
+    - pwsh: dotnet pack -c Release -o Pack ./sqlscripter.sln
 
 
 # scripts to run after build
