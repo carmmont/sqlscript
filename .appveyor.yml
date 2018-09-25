@@ -106,10 +106,15 @@ build_script:
         {$env:VERSION=$env:APPVEYOR_BUILD_VERSION};
         "-[$env:VERSION]-" | oh;
         $i = "[$env:VERSION] [$env:APPVEYOR_REPO_TAG] [$env:APPVEYOR_REPO_TAG_NAME] [$env:APPVEYOR_BUILD_VERSION] [$env:APPVEYOR_BUILD_NUMBER]"; $i | out-host;
-        dotnet restore ./sqlscripter.sln
-        dotnet publish -c Release -o out ./sqlscripter.sln /p:BuildNumber=$env:VERSION
-        dotnet publish -c Release -o Win64 --runtime "win-x64" ./sqlscripter.sln /p:BuildNumber=$env:VERSION
+        Set-AppveyorBuildVariable -Name "VERSION" -Value $env:VERSION;
+    - pwsh: dotnet restore ./sqlscripter.sln
+    - pwsh: dotnet publish -c Release -o out ./sqlscripter.sln /p:BuildNumber=$env:VERSION
+    - pwsh: dotnet publish -c Release -o Win64 --runtime "win-x64" ./sqlscripter.sln /p:BuildNumber=$env:VERSION
+    - pwsh: |
         dotnet pack -c Release -o Pack ./sqlscripter.sln /p:BuildNumber=$env:VERSION
+        $pkg = (gi ./src/sqlscripter/Pack/*.nupkg).FullName
+        Push-AppveyorArtifact $pkg
+
 
 
 # scripts to run after build
@@ -216,7 +221,6 @@ deploy:
   - provider: NuGet
     api_key:
       secure: YSawB0BDx6YjIM3itCGTjA2I81T3UMuyhE5z0NZI7XvvZXZtOtd0YXen7VkcVBKT
-    artifact: ./src/sqlscripter/Pack/.*\.nupkg/
     on:
      appveyor_repo_tag: true       # deploy on tag push only
 
