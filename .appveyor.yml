@@ -99,12 +99,17 @@ before_package:
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
-    - pwsh: if((-Not [string]::IsNullOrEmpty($env:APPVEYOR_REPO_TAG)) -and 'false' -ne "$env:APPVEYOR_REPO_TAG"){$env:VERSION=$env:APPVEYOR_REPO_TAG_NAME}else{$env:VERSION=$env:APPVEYOR_BUILD_VERSION};"-[$env:VERSION]-" | oh;
-    - pwsh: $i = "[$env:VERSION] [$env:APPVEYOR_REPO_TAG] [$env:APPVEYOR_REPO_TAG_NAME] [$env:APPVEYOR_BUILD_VERSION] [$env:APPVEYOR_BUILD_NUMBER]"; $i | out-host;
-    - pwsh: dotnet restore ./sqlscripter.sln
-    - pwsh: dotnet publish -c Release -o out ./sqlscripter.sln /p:BuildNumber=$env:VERSION
-    - pwsh: dotnet publish -c Release -o Win64 --runtime "win-x64" ./sqlscripter.sln /p:BuildNumber=$env:VERSION
-    - pwsh: dotnet pack -c Release -o Pack ./sqlscripter.sln /p:BuildNumber=$env:VERSION
+    - pwsh: |
+        if((-Not [string]::IsNullOrEmpty($env:APPVEYOR_REPO_TAG)) -and 'false' -ne "$env:APPVEYOR_REPO_TAG")
+        {$env:VERSION=$env:APPVEYOR_REPO_TAG_NAME}
+        else
+        {$env:VERSION=$env:APPVEYOR_BUILD_VERSION};
+        "-[$env:VERSION]-" | oh;
+        $i = "[$env:VERSION] [$env:APPVEYOR_REPO_TAG] [$env:APPVEYOR_REPO_TAG_NAME] [$env:APPVEYOR_BUILD_VERSION] [$env:APPVEYOR_BUILD_NUMBER]"; $i | out-host;
+        dotnet restore ./sqlscripter.sln
+        dotnet publish -c Release -o out ./sqlscripter.sln /p:BuildNumber=$env:VERSION
+        dotnet publish -c Release -o Win64 --runtime "win-x64" ./sqlscripter.sln /p:BuildNumber=$env:VERSION
+        dotnet pack -c Release -o Pack ./sqlscripter.sln /p:BuildNumber=$env:VERSION
 
 
 # scripts to run after build
