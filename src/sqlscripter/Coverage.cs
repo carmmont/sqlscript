@@ -111,7 +111,7 @@ namespace sqlscripter
         {
 
             if(null == _result.query_hash || 0 == _result.query_hash.Count)
-                throw new ScripterException("No Compiled Hash");
+                throw new ScripterException("No Compiled Hash. Please Review your Query");
 
             string sql1 = @"
                 --DBCC FREEPROCCACHE

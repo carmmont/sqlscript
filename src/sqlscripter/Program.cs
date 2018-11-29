@@ -530,7 +530,10 @@ namespace sqlscripter
 
                 var indexfiles = command.Option("-i | --input", "Input Coverage File", CommandOptionType.MultipleValue);
                 var statements = command.Option("-s | --statement", "Input Coverage Statement", CommandOptionType.MultipleValue);
-                
+                var free_proccache = command.Option("-f | --free-proccache", @"Run DBCC FREEPROCCACHE before your test in order
+                 to count only what you are running and not previous runs.
+                 Do Not use in a production system.", CommandOptionType.NoValue);
+
                 command.OnExecute(() =>
                 {
                 
@@ -541,6 +544,18 @@ namespace sqlscripter
 
                     Database db = server.Databases[sqldb.Value()];
 
+                    if(free_proccache.HasValue())
+                    {
+                        db.ExecuteNonQuery("DBCC FREEPROCCACHE");
+                    }
+
+                    foreach (string statement in statements.Values)
+                    {                        
+                        string sql = statement;
+
+                        handle_coverage(db, sql); 
+                    }
+
                     foreach (string indexfile in indexfiles.Values)
                     {
                         string[] lines = System.IO.File.ReadAllLines(indexfile);
@@ -550,13 +565,7 @@ namespace sqlscripter
                         
                     }
 
-                    foreach (string statement in statements.Values)
-                    {
-                        
-                        string sql = statement;
-
-                       handle_coverage(db, sql); 
-                    }
+                    
 
                 });
 
@@ -584,13 +593,13 @@ namespace sqlscripter
         {
             Coverage coverage = new Coverage();
 
-                        coverage.compile(db, sql);
+            coverage.compile(db, sql);
 
-                        Result res = coverage.Execute();
+            Result res = coverage.Execute();
 
-                        double p = (res.executed / res.total) * 100;
+            double p = (res.executed / res.total) * 100;
 
-                        System.Console.WriteLine("Coverage {0}% executed {1} of {2}", p, res.executed, res.total);
+            System.Console.WriteLine("Coverage {0}% executed {1} of {2}", p, res.executed, res.total);
         }
         private static void UrnToIndex(string path, Microsoft.SqlServer.Management.Sdk.Sfc.Urn urn)
         {
