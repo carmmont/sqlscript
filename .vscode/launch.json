@@ -11,7 +11,7 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/src/sqlscripter/bin/Debug/netcoreapp2.1/sqlscripter.dll",
-            "args": [],
+            "args": ["coverage", "-S", "127.0.0.1", "-U", "sa", "-P", "bits#999", "-d", "TESTDB", "-i", "A:/Alessandro/My Projects/bitbucket/sqlscripts/SQL/TABLE_ROWS.SQL"],
             "cwd": "${workspaceFolder}/src/sqlscripter",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
             "console": "internalConsole",

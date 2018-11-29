@@ -523,6 +523,46 @@ namespace sqlscripter
                     });
             });
 
+            commandLineApplication.Command("coverage", command => 
+            {    
+                
+                command.Options.AddRange(command.Parent.Options);
+
+                var indexfiles = command.Option("-i | --input", "Input Coverage File", CommandOptionType.MultipleValue);
+                var statements = command.Option("-s | --statement", "Input Coverage Statement", CommandOptionType.MultipleValue);
+                
+                command.OnExecute(() =>
+                {
+                
+                    disable_console = nouseprogress.HasValue();
+
+                    ServerConnection serverConnection = new ServerConnection(sqlserver.Value(), sqluser.Value(), sqlpsw.Value());
+                    Server server = new Server(serverConnection);
+
+                    Database db = server.Databases[sqldb.Value()];
+
+                    foreach (string indexfile in indexfiles.Values)
+                    {
+                        string[] lines = System.IO.File.ReadAllLines(indexfile);
+                        string sql = string.Join("\r\n", lines);
+
+                        handle_coverage(db, sql);
+                        
+                    }
+
+                    foreach (string statement in statements.Values)
+                    {
+                        
+                        string sql = statement;
+
+                       handle_coverage(db, sql); 
+                    }
+
+                });
+
+            
+            });
+            
             commandLineApplication.HelpOption("-h | --help", inherited: true);
 
             try
@@ -540,6 +580,18 @@ namespace sqlscripter
             }
         }
 
+        private static void handle_coverage(Database db, string sql)
+        {
+            Coverage coverage = new Coverage();
+
+                        coverage.compile(db, sql);
+
+                        Result res = coverage.Execute();
+
+                        double p = (res.executed / res.total) * 100;
+
+                        System.Console.WriteLine("Coverage {0}% executed {1} of {2}", p, res.executed, res.total);
+        }
         private static void UrnToIndex(string path, Microsoft.SqlServer.Management.Sdk.Sfc.Urn urn)
         {
             if (null != path)

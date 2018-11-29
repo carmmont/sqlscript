@@ -7,7 +7,7 @@
 
 # Sql Scripter
 
-Sql Scripter is an opinionated tool to implement a complex CI/CD pipeline on sql server while being source control freandly.
+Sql Scripter is an opinionated tool to implement a complex CI/CD pipeline on sql server while being source control friendly.
 
 ## Create a Full script of a database respecting dependency
 
