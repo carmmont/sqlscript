@@ -12,6 +12,7 @@ if(-Not (test-path './bin/nuget'))
      [System.IO.Directory]::CreateDirectory('./bin/nuget');
 }
 
+
 if(-Not (test-path './bin/nuget/Microsoft.SqlServer.Smo.140.2.9.nupkg'))
 {
 

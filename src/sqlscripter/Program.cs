@@ -620,6 +620,8 @@ namespace sqlscripter
             double p = (res.executed / res.total) * 100;
 
             System.Console.WriteLine("Coverage {0}% executed {1} of {2}", p, res.executed, res.total);
+
+            
         }
         private static void UrnToIndex(string path, Microsoft.SqlServer.Management.Sdk.Sfc.Urn urn)
         {

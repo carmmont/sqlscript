@@ -8,10 +8,13 @@ using System.Collections.Generic;
 
 namespace sqlscripter
 {
-    public class covdata
-    {
+    public class cov
+    {        
         public string query_hash;
         public string statement_text;
+    }
+    public class covdata: cov
+    {        
         public long execution_count;
         public long total_worker_time; 
         public long total_logical_reads;
@@ -19,13 +22,19 @@ namespace sqlscripter
         public long total_logical_writes;
         public System.DateTime last_execution_time;
         public System.DateTime creation_time;
-
         public List<covdata> extra = new List<covdata>();
+    }
+
+    public class covinput : cov
+    {
+
     }
 
     public class Result
     {
         public Dictionary<string, covdata> result;
+
+        public Dictionary<string, covinput> input;
 
         public double executed = 0;
 
@@ -93,14 +102,25 @@ namespace sqlscripter
 
             XmlNodeList l = _doc.SelectNodes("//*[@QueryHash]");
 
+            
             _result = new Result();
             _result.query_hash = new List<string>();
+            _result.input = new Dictionary<string, covinput>();
 
             foreach(XmlNode n in l)
             {
                 string hash = n.Attributes.GetNamedItem("QueryHash").Value;
                 _result.query_hash.Add(hash);
                 System.Console.WriteLine(hash);
+
+                string statement = n.Attributes.GetNamedItem("StatementText").Value;
+                
+                covinput i = new covinput();
+                i.query_hash = hash;
+                i.statement_text = statement;
+
+                _result.input[hash] = i;
+
             }
 
             //System.IO.File.WriteAllText("plan.xml", plan);

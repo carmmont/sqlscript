@@ -76,6 +76,25 @@ AS
 
 
 GO
+DROP FUNCTION IF EXISTS [dbo].[num_echo]
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date, ,>
+-- Description:	<Description, ,>
+-- =============================================
+CREATE FUNCTION num_echo 
+(
+	@n int
+)
+RETURNS int
+AS
+BEGIN
+	RETURN @N
+
+END
+
+GO
 DROP FUNCTION IF EXISTS [dbo].[FFF]
 GO
 
@@ -98,14 +117,26 @@ GO
 -- Create date: <Create Date,,>
 -- Description:	<Description,,>
 -- =============================================
-CREATE PROCEDURE test_coverage
+CREATE PROCEDURE [dbo].[test_coverage]
 	-- Add the parameters for the stored procedure here
 	@full bit = 0
 AS
 BEGIN
-	exec GET_ITEMS
-    if @full = 1
+    /*COMMENT
+    *
+    *
+    *
+    */exec GET_ITEMS
+    if @full > 0
+    BEGIN
         select * from FFF()
+    END
+
+    if @full > 1
+    BEGIN
+    -------------------------
+        SELECT dbo.num_echo(@full)
+    END
 END
 
 GO
