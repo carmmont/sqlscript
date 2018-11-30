@@ -6,3 +6,4 @@ obj/
 coverage-hits.txt
 coverage.json
 src/sqlscripter/out/
+src/sqlscripter/sql/

@@ -1,0 +1,10 @@
+#file auto-generated
+Schema:[].[Gathering]
+Table:[dbo].[TABLE1]
+Table:[Gathering].[Exec_Query_Plans_1]
+StoredProcedure:[dbo].[GET_ITEMS]
+StoredProcedure:[dbo].[NEW_ITEM]
+UserDefinedFunction:[dbo].[FFF]
+StoredProcedure:[dbo].[test_coverage]
+View:[dbo].[view_1]
+Synonym:[dbo].[TABLE2]

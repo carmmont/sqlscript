@@ -158,12 +158,16 @@ after_test:
 # to run your custom scripts instead of automatic tests
 test_script:
     - dotnet ./minicover/src/MiniCover/out/dotnet-minicover.dll instrument --workdir ./ --assemblies src/**/out/**/*.dll --sources src/**/*.cs
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll --help
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S "(local)\SQL2016" -U sa -P "Password12!" -f -s 'exec test_coverage 0'
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S "(local)\SQL2016" -U sa -P "Password12!" -f -s 'exec test_coverage 1'
     - dotnet ./src/sqlscripter/out/sqlscripter.dll info -S "(local)\SQL2016" -U sa -P "Password12!" 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index2.txt --no-progress --query-mode
     - pwsh: (gc ./index.txt | out-string) -eq (gc ./index2.txt | out-string) 
+    - dotnet urn -u "Server[@Name='4f4c6527222b']/Database[@Name='MONITORING']/Table[@Name='Procedures' and @Schema='Gathering']"
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll info -S "(local)\SQL2016" -U sa -P "Password12!" 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress
-    # [Gathering].[Exec_Query_Plans_1]
     - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -o create.sql --no-progress
     - pwsh: (gc .\create.sql | out-string) -eq (gc ./test/create.sql | out-string)
     - sqlcmd -b -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB2 -i ./create.sql

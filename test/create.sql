@@ -65,6 +65,7 @@ AS
 
 
 
+
 GO
 DROP PROCEDURE IF EXISTS [dbo].[NEW_ITEM]
 GO
@@ -73,16 +74,7 @@ AS
     INSERT INTO TABLE1 (NAME) VALUES (@NAME)
 
 
-GO
-DROP VIEW IF EXISTS [dbo].[view_1]
-GO
-create view view_1
-as
-SELECT        TABLE1.*
-FROM            TABLE1
-GO
-IF NOT EXISTS (SELECT * FROM sys.synonyms WHERE name = N'TABLE2' AND schema_id = SCHEMA_ID(N'dbo'))
-CREATE SYNONYM [dbo].[TABLE2] FOR [TESTDB].[dbo].[TABLE1]
+
 GO
 DROP FUNCTION IF EXISTS [dbo].[FFF]
 GO
@@ -97,3 +89,33 @@ RETURN
 	-- Add the SELECT statement with parameter references here
 	SELECT 0 AS S
 )
+
+GO
+DROP PROCEDURE IF EXISTS [dbo].[test_coverage]
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE PROCEDURE test_coverage
+	-- Add the parameters for the stored procedure here
+	@full bit = 0
+AS
+BEGIN
+	exec GET_ITEMS
+    if @full = 1
+        select * from FFF()
+END
+
+GO
+DROP VIEW IF EXISTS [dbo].[view_1]
+GO
+create view view_1
+as
+SELECT        TABLE1.*
+FROM            TABLE1
+
+GO
+IF NOT EXISTS (SELECT * FROM sys.synonyms WHERE name = N'TABLE2' AND schema_id = SCHEMA_ID(N'dbo'))
+CREATE SYNONYM [dbo].[TABLE2] FOR [TESTDB].[dbo].[TABLE1]

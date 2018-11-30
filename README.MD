@@ -23,5 +23,14 @@ sqlscripter script -S <database> -U <user> -P <password> -d <dbtarget> -i <index
 sqlscripter build -S <database> -U <user> -P <password> -d <dbtarget> -i <index-file> -o <output-file>
 ```
 
+The first step will create and index indicating the correct order to build your database.
+The second step will generate script for all object indicated in the index file. You can use more than one index file. For instance you could have some script to add data after the database is created.
 
+The files generated or re-generated in the first two steps should be put under source control.
+
+Whenever you modify an object you can just re-run the second step.
+
+If you add objects you may re-run the first step or add the new objects manually to the index.
+
+Finally on your build script you run the third step and you get the full script to create or update your database.
 

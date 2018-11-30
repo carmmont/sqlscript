@@ -210,6 +210,23 @@ namespace sqlscripter
             return r;
         }
 
+        static bool validate_connection(CommandOption sqlserver , 
+            CommandOption sqldb, CommandOption sqluser, CommandOption  sqlpsw  )
+            {
+                if(!sqlserver.HasValue())
+                {
+                    System.Console.Error.WriteLine("Missing Server Name.");
+                    return false;
+                }
+                if(!sqldb.HasValue())
+                {
+                    System.Console.Error.WriteLine("Missing Database Name.");
+                    return false;
+                }
+
+                return true;
+            }
+
         static int Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
@@ -227,7 +244,7 @@ namespace sqlscripter
             commandLineApplication.Command("info", command =>
             {
                     command.Options.AddRange(command.Parent.Options);
-                    command.Description = $"{command.Name} render server informations";
+                    command.Description = $"{command.Name} render server information";
 
                     command.OnExecute( () =>
                     {                   
@@ -250,13 +267,19 @@ namespace sqlscripter
                 command.Options.AddRange(command.Parent.Options);
 
                 command.Description = $"{command.Name} allow to connect to a database and build an ordered index of all objects";
-                                
 
+                
                 var indexfile = command.Option("-i | --index", "Generate Index File", CommandOptionType.SingleValue);
                 var querymode = command.Option("--query-mode", "Use object query for objects", CommandOptionType.NoValue);
                 
                 command.OnExecute( () =>
-                {                   
+                {
+
+                    if(!validate_connection(sqlserver, sqldb, sqluser, sqlpsw))
+                    {
+                        return 2;
+                    }
+
                     DateTime pinned = DateTime.UtcNow;
 
                     disable_console = nouseprogress.HasValue();
@@ -392,6 +415,9 @@ namespace sqlscripter
             commandLineApplication.Command("urn", command =>
             {
                 var urn = command.Option("-u | --urn", "Sql Urn", CommandOptionType.SingleValue);
+                command.Description = @"Normalize an Input. 
+                From Server[@Name='4f4c6527222b']/Database[@Name='MONITORING']/Table[@Name='Procedures' and @Schema='Gathering'] 
+                to Table:[Gathering].[Procedures]";
 
                 command.OnExecute(() => {
                     Console.WriteLine(NormalizeUrn(urn.Value()));
@@ -415,28 +441,15 @@ namespace sqlscripter
                 
                     disable_console = nouseprogress.HasValue();
 
+                    if(!validate_connection(sqlserver, sqldb, sqluser, sqlpsw))
+                    {
+                        return 2;
+                    }
+                    
                     ServerConnection serverConnection = new ServerConnection(sqlserver.Value(), sqluser.Value(), sqlpsw.Value());
                     Server server = new Server(serverConnection);
 
-                    Scripter scripter = new Scripter(server);
-                    ScriptingOptions op = new ScriptingOptions
-                    {
-                        AllowSystemObjects = false
-                         ,
-                        WithDependencies = false
-                        , ClusteredIndexes = true
-                        , Indexes = true
-                        , DriAllConstraints = true
-
-                        //, 
-
-                        //, DriAll = true
-
-
-
-                    };
-
-                    scripter.Options = op;
+                    
 
                     string[] objs = target.Values.ToArray();
 
@@ -447,9 +460,10 @@ namespace sqlscripter
 
                     string outputdir = output.Value() ?? "./";
                                            
-                                        
-                   Script(objs, server.Databases[sqldb.Value()], scripter, outputdir, (!nouseprogress.HasValue()));
+                    
+                   Script(objs, server.Databases[sqldb.Value()], outputdir, (!nouseprogress.HasValue()));
 
+                   return 0;
                     
                 });
 
@@ -527,6 +541,7 @@ namespace sqlscripter
             {    
                 
                 command.Options.AddRange(command.Parent.Options);
+                command.Description = @"Run sql stetament from files or command line and track coverage";
 
                 var indexfiles = command.Option("-i | --input", "Input Coverage File", CommandOptionType.MultipleValue);
                 var statements = command.Option("-s | --statement", "Input Coverage Statement", CommandOptionType.MultipleValue);
@@ -565,8 +580,6 @@ namespace sqlscripter
                         
                     }
 
-                    
-
                 });
 
             
@@ -581,6 +594,13 @@ namespace sqlscripter
 
                 return r;
 
+            }
+            catch(CommandParsingException ex)
+            {
+                Console.Error.Write("Invalid Command Line: ");
+                Console.Error.WriteLine(ex.Message);
+                Console.Error.WriteLine(commandLineApplication.GetHelpText());
+                return 22;
             }
             catch (Exception ex)
             {
@@ -636,6 +656,29 @@ namespace sqlscripter
         }
         */
 
+        private static void Script(string[] target, Database db
+        , string output, bool progress)
+        {
+            Scripter scripter = new Scripter(db.Parent);
+                    ScriptingOptions op = new ScriptingOptions
+                    {
+                        AllowSystemObjects = false
+                         ,
+                        WithDependencies = false
+                        , ClusteredIndexes = true
+                        , Indexes = true
+                        , DriAllConstraints = true
+
+                        //, 
+
+                        //, DriAll = true
+                    };
+
+                    scripter.Options = op;
+
+            Script(target, db, scripter, output,progress);
+            
+        }
         private static void Script(string[] target, Database db
         , Scripter scripter, string output, bool progress)
         {
