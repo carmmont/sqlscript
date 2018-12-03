@@ -4,7 +4,7 @@
     <PackAsTool>true</PackAsTool>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <PackageVersion>1.0.0-alpha-$(BuildNumber)</PackageVersion>
+    <PackageVersion>$(BuildNumber)</PackageVersion>
     <RepositoryUrl>https://github.com/aseduto/sqlscript</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>sqlserver</PackageTags>
