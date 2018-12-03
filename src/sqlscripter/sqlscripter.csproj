@@ -1,12 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <PackAsTool>true</PackAsTool>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <PackageVersion>$(BuildNumber)</PackageVersion>
+    <RepositoryUrl>https://github.com/aseduto/sqlscript</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>sqlserver</PackageTags>
+    <Version>$(BuildNumber)</Version>
+    <Description>Sql Scripter is an opinionated tool to implement a complex CI/CD pipeline on sql server while being source control freandly.</Description>
+    <Copyright>aseduto</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.1.1" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.2.5" />
     <PackageReference Include="Microsoft.SqlServer.Smo" Version="140.2.9" />
     <PackageReference Include="System.Data.SqlClient" Version="4.4.2" />
   </ItemGroup>

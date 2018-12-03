@@ -2,7 +2,8 @@
   "profiles": {
     "sqlscripter": {
       "commandName": "Project",
-      "commandLineArgs": "script -i ../../test/index.txt -S \"(local)\" -U sa -P bits#999 -d TESTDB"
+      "commandLineArgs": "build -S localhost -U sa -P bits#999 -d TESTDB -i a:\\tmp\\db\\db.txt  -o a:\\tmp\\db\\build.sql",
+      "workingDirectory": "A:\\Alessandro\\My Projects\\bitbucket\\dbmaintenance"
     }
   }
 }

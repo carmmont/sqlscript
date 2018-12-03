@@ -11,53 +11,6 @@
 # version format
 version: 0.0.{build}
 
-# you can use {branch} name in version format too
-# version: 1.0.{build}-{branch}
-
-# branches to build
-branches:
-  # whitelist
-  only:
-    - master
-    - dev 
-  # blacklist
-  except:
-    - gh-pages
-
-# Do not build on tags (GitHub and BitBucket)
-skip_tags: false
-
-# Start builds on tags only (GitHub and BitBucket)
-skip_non_tags: false
-
-# Skipping commits with particular message or from specific user
-#skip_commits:
-#  message: /.*skip ci.*/      # Regex for matching commit message
-#  author: John                                      # Commit author's username, name, email or regexp maching one of these.
-
-# Including commits with particular message or from specific user
-#only_commits:
-#  message: /build/                # Start a new build if message contains 'build'
-#  author: jack@company.com        # Start a new build for commit of user with email jack@company.com
-
-# Skipping commits affecting specific files (GitHub only). More details here: /docs/appveyor-yml
-#skip_commits:
-#  files:
-#    - docs/*
-#    - '**/*.html'
-
-# Including commits affecting specific files (GitHub only). More details here: /docs/appveyor-yml
-#only_commits:
-#  files:
-#    - Project-A/
-#    - Project-B/
-
-# Do not build feature branch with open Pull Requests
-#skip_branch_with_pr: true
-
-# Maximum number of concurrent jobs for the project
-max_jobs: 1
-
 #---------------------------------#
 #    environment configuration    #
 #---------------------------------#
@@ -65,28 +18,8 @@ max_jobs: 1
 # Build worker image (VM template)
 image: Visual Studio 2017
 
-# scripts that are called at very beginning, before repo cloning
-init:
-  #- pwsh: ./deps.ps1
-
-# clone directory
-#clone_folder: c:\projects\myproject
-
-# fetch repository as zip archive
-#shallow_clone: true                 # default is "false"
-
-# set clone depth
-clone_depth: 5                      # clone entire repository history if not defined
-
-# setting up etc\hosts file
-hosts:
-  queue-server: 127.0.0.1
-  db.server.com: 127.0.0.2
-
 # environment variables
 environment:
-  my_var1: value1
-  my_var2: value2
   coverall:
     secure: 2dkcctTsGqQPGWhvydzFChjctp33OSEkfclaRYUDWkmDIV0uxgSZ4j3rvHMZakm3
   
@@ -127,10 +60,7 @@ services:
 install:
   # by default, all script lines are interpreted as batch
   - pwsh: ./deps.ps1
-
-
-
-
+  #- pwsh: md './bin/nuget'
 
 #---------------------------------#
 #       build configuration       #
@@ -166,17 +96,32 @@ before_build:
 # scripts to run *after* solution is built and *before* automatic packaging occurs (web apps, NuGet packages
 # , Azure Cloud Services)
 before_package:
+    
+
+# to run your custom scripts instead of automatic MSBuild
+build_script:
+    - pwsh: |
+        if((-Not [string]::IsNullOrEmpty($env:APPVEYOR_REPO_TAG)) -and 'false' -ne "$env:APPVEYOR_REPO_TAG")
+        {$env:VERSION=$env:APPVEYOR_REPO_TAG_NAME}
+        else
+        {$env:VERSION=$env:APPVEYOR_BUILD_VERSION};
+        "-[$env:VERSION]-" | oh;
+        $i = "[$env:VERSION] [$env:APPVEYOR_REPO_TAG] [$env:APPVEYOR_REPO_TAG_NAME] [$env:APPVEYOR_BUILD_VERSION] [$env:APPVEYOR_BUILD_NUMBER]"; $i | out-host;
+        Set-AppveyorBuildVariable -Name "VERSION" -Value $env:VERSION;
+    - pwsh: dotnet restore ./sqlscripter.sln
+    - pwsh: dotnet publish -c Release -o out ./sqlscripter.sln /p:BuildNumber=$env:VERSION
+    - pwsh: dotnet publish -c Release -o Win64 --runtime "win-x64" ./sqlscripter.sln /p:BuildNumber=$env:VERSION
+    - pwsh: |
+        dotnet pack -c Release -o Pack ./sqlscripter.sln /p:BuildNumber=$env:VERSION
+        $pkg = (gi ./src/sqlscripter/Pack/*.nupkg).FullName
+        Push-AppveyorArtifact $pkg
+
+
 
 # scripts to run after build
 after_build:
         - ps: 7z a sqlscripter.zip './src/sqlscripter/out/*';
         - ps: 7z a sqlscripterx64.zip './src/sqlscripter/Win64/*'; 
-
-# to run your custom scripts instead of automatic MSBuild
-build_script:
-    - dotnet restore ./sqlscripter.sln
-    - dotnet publish -c Release -o out ./sqlscripter.sln
-    - dotnet publish -c Release -o Win64 --runtime "win-x64" ./sqlscripter.sln
 
 # to disable automatic builds
 #build: off
@@ -199,37 +144,43 @@ build_script:
 before_test:
     - git clone https://github.com/aseduto/minicover.git
     - cd minicover
-    - git checkout coverall
+    #- git checkout coverall
+    - git checkout fix/lambda
     - dotnet restore
-    - dotnet publish ./src/minicover/minicover.csproj -o out -c Release
+    - dotnet publish ./src/MiniCover/MiniCover.csproj -o out -c Release
     - cd ..
-    - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -Q "CREATE DATABASE TESTDB"
-    - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i ./test/create.sql
-    - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -Q "CREATE DATABASE TESTDB2" 
+    - sqlcmd -b -S "(local)\SQL2016" -U sa -P "Password12!" -Q "CREATE DATABASE TESTDB"
+    - sqlcmd -b -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i ./test/create.sql
+    - sqlcmd -b -S "(local)\SQL2016" -U sa -P "Password12!" -Q "CREATE DATABASE TESTDB2" 
 
 # scripts to run after tests
 after_test:
 
 # to run your custom scripts instead of automatic tests
 test_script:
-    #- cd tools
-    #- dotnet restore
-    #- dotnet minicover instrument --workdir ../ --assemblies src/**/out/**/*.dll --sources src/**/*.cs
-    #- dotnet minicover reset
-    #- cd ..
-    - dotnet ./minicover/src/minicover/out/dotnet-minicover.dll instrument --workdir ./ --assemblies src/**/out/**/*.dll --sources src/**/*.cs
-    - dotnet  ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt 
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -o create.sql
+    - dotnet ./minicover/src/MiniCover/out/dotnet-minicover.dll instrument --workdir ./ --assemblies src/**/out/**/*.dll --sources src/**/*.cs
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll --help
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -f -s "exec test_coverage 0"
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -f -s "exec test_coverage 1"
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll info -S "(local)\SQL2016" -U sa -P "Password12!" 
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress 
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index2.txt --no-progress --query-mode
+    - pwsh: (gc ./index.txt | out-string) -eq (gc ./index2.txt | out-string) 
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll urn -u "Server[@Name='4f4c6527222b']/Database[@Name='MONITORING']/Table[@Name='Procedures' and @Schema='Gathering']"
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll info -S "(local)\SQL2016" -U sa -P "Password12!" 
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -o create.sql --no-progress
     - pwsh: (gc .\create.sql | out-string) -eq (gc ./test/create.sql | out-string)
-    - sqlcmd -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB2 -i ./create.sql
+    - sqlcmd -b -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB2 -i ./create.sql
+    #idempotent
+    - sqlcmd -b -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB2 -i ./create.sql
     #- cd tools
     #- dotnet minicover report --workdir ../ --threshold 90
     #- pwsh: ls env: | ? {-Not ($_.name -match 'coverall')}
     - echo %APPVEYOR_REPO_COMMIT%
     - echo %APPVEYOR_REPO_BRANCH%
-    - dotnet ./minicover/src/minicover/out/dotnet-minicover.dll report --workdir ./ --threshold 80
-    - dotnet ./minicover/src/minicover/out/dotnet-minicover.dll coverallreport --id %APPVEYOR_REPO_COMMIT% --servicename appveyor --output coverall.json --job %APPVEYOR_BUILD_NUMBER% --token %coverall% --branch %APPVEYOR_REPO_BRANCH% --remote origin --remote-url https://github.com/aseduto/sqlscript.git --post https://coveralls.io/api/v1/jobs --threshold 80 --msg "%APPVEYOR_REPO_COMMIT_MESSAGE%"
+    - dotnet ./minicover/src/minicover/out/dotnet-minicover.dll report --workdir ./ --threshold 50
+    - dotnet ./minicover/src/MiniCover/out/dotnet-minicover.dll coverallsreport --commit %APPVEYOR_REPO_COMMIT% --service-name appveyor --output coverall.json --service-job-id %APPVEYOR_BUILD_NUMBER% --repo-token %coverall% --branch %APPVEYOR_REPO_BRANCH% --remote origin --remote-url https://github.com/aseduto/testman.git --commit-message "%APPVEYOR_REPO_COMMIT_MESSAGE%"
 
 # to disable automatic tests
 #test: off
@@ -269,9 +220,15 @@ deploy:
     draft: true
     prerelease: true
     auth_token:
-        secure: hRuWi7itZDVgtJo58zJ/Ijk5N73iV6pr2DB9HCZGNGWaHpnQUukAtYlmJgfS+d05
+        secure: OGsnt+Yh/2jNrAJ8kgslOcYuRbtyrgKj/CHHyEIEC0YsJQE6FxpqtLPrvihxQYx/
     on:
      appveyor_repo_tag: true       # deploy on tag push only
+  - provider: NuGet
+    api_key:
+      secure: YSawB0BDx6YjIM3itCGTjA2I81T3UMuyhE5z0NZI7XvvZXZtOtd0YXen7VkcVBKT
+    on:
+     appveyor_repo_tag: true       # deploy on tag push only
+
 
    
 
