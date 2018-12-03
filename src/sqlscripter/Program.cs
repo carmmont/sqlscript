@@ -137,8 +137,8 @@ namespace sqlscripter
             foreach (SqlSmoObject ob in coll)
             {
                 if(progress)
-                    drawTextProgressBar(++idx, count);
-
+                    drawTextProgressBar(++idx, count, NormalizeUrn( ob.Urn));
+                    
                 if (ob is StoredProcedure)
                 {
                     if (!((StoredProcedure)ob).IsSystemObject)
@@ -227,6 +227,23 @@ namespace sqlscripter
                 return true;
             }
 
+        static ServerConnection get_server_connection(CommandOption sqlserver , 
+            CommandOption sqldb, CommandOption sqluser, CommandOption  sqlpsw  )
+            {
+                if(!validate_connection(sqlserver, sqldb, sqluser, sqlpsw))
+                {
+                    return null;
+                }
+
+                if(string.IsNullOrEmpty(sqluser.Value()))
+                {
+                    return new ServerConnection(sqlserver.Value());
+
+                }
+
+                return new ServerConnection(sqlserver.Value(), sqluser.Value(), sqlpsw.Value());
+            }
+
         static int Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
@@ -236,7 +253,7 @@ namespace sqlscripter
             commandLineApplication.Description = "Sqlscripter";
 
             var sqlserver = commandLineApplication.Option("-S | --server", "Sql Server", CommandOptionType.SingleValue);
-            var sqluser = commandLineApplication.Option("-U | --user", "Sql User", CommandOptionType.SingleValue);
+            var sqluser = commandLineApplication.Option("-U | --user", "Sql User. Do not use in order to switch to integrated authentication.", CommandOptionType.SingleValue);
             var sqlpsw = commandLineApplication.Option("-P | --psw", "Sql Password", CommandOptionType.SingleValue);
             var sqldb  = commandLineApplication.Option("-d | --database", "Sql Database", CommandOptionType.SingleValue);
             var nouseprogress = commandLineApplication.Option("--no-progress", "Disable progress bar", CommandOptionType.NoValue);
@@ -249,7 +266,10 @@ namespace sqlscripter
                     command.OnExecute( () =>
                     {                   
                     
-                        ServerConnection serverConnection = new ServerConnection(sqlserver.Value(), sqluser.Value(), sqlpsw.Value());
+                        ServerConnection serverConnection = get_server_connection(sqlserver, sqldb, sqluser, sqlpsw);
+                        if(null == serverConnection)
+                            return 2;
+
                         Server server = new Server(serverConnection);
 
                         System.Console.WriteLine("Databases:");
@@ -257,6 +277,8 @@ namespace sqlscripter
                         {
                             System.Console.WriteLine($"\t{db}");
                         }
+
+                        return 0;
 
                     });
                     
@@ -275,16 +297,13 @@ namespace sqlscripter
                 command.OnExecute( () =>
                 {
 
-                    if(!validate_connection(sqlserver, sqldb, sqluser, sqlpsw))
-                    {
-                        return 2;
-                    }
-
                     DateTime pinned = DateTime.UtcNow;
 
                     disable_console = nouseprogress.HasValue();
 
-                    ServerConnection serverConnection = new ServerConnection(sqlserver.Value(), sqluser.Value(), sqlpsw.Value());
+                    ServerConnection serverConnection = get_server_connection(sqlserver, sqldb, sqluser, sqlpsw);
+                    if(null == serverConnection)
+                        return 2;
                     Server server = new Server(serverConnection);
 
                     Scripter scripter = new Scripter(server);
@@ -300,7 +319,7 @@ namespace sqlscripter
                     UrnCollection urns = new UrnCollection();
                     List<Microsoft.SqlServer.Management.Sdk.Sfc.Urn> preobjects = new List<Microsoft.SqlServer.Management.Sdk.Sfc.Urn>();
 
-                    Console.WriteLine("CONNECTED ({0}ms)", DateTime.UtcNow.Subtract(pinned).TotalMilliseconds);
+                    Console.WriteLine("CONNECTED ({0})", DateTime.UtcNow.Subtract(pinned));
                     pinned = DateTime.UtcNow;
 
                     //bool display_progress = (!useprogress.HasValue()) && System.Console.h
@@ -373,16 +392,24 @@ namespace sqlscripter
 
                     add_urns_from_collection(tt, urns); 
 
-                    Console.WriteLine("DISCOVERING ({0}ms)", DateTime.UtcNow.Subtract(pinned).TotalMilliseconds);
+                    Console.WriteLine("DISCOVERING ({0})", DateTime.UtcNow.Subtract(pinned));
                     pinned = DateTime.UtcNow;
 
                     //scripter.DiscoveryProgress += Scripter_DiscoveryProgress;
                     DependencyTree tr = scripter.DiscoverDependencies(urns, true);
 
-                    Console.WriteLine("DEPENDENCY ({0}ms)", DateTime.UtcNow.Subtract(pinned).TotalMilliseconds);
+                    Console.WriteLine("DEPENDENCY ({0})", DateTime.UtcNow.Subtract(pinned));
                     pinned = DateTime.UtcNow;
 
                     DependencyCollection dc = scripter.WalkDependencies(tr);
+
+                    Console.WriteLine("WALKED ({0})", DateTime.UtcNow.Subtract(pinned));
+                    pinned = DateTime.UtcNow;
+
+                    dependency_index index = dependency.index(tr);
+
+                    Console.WriteLine("INDEXED ({0})", DateTime.UtcNow.Subtract(pinned));
+                    pinned = DateTime.UtcNow;
 
                     string path = indexfile.Value();
 
@@ -396,17 +423,19 @@ namespace sqlscripter
 
                     foreach (Microsoft.SqlServer.Management.Sdk.Sfc.Urn urn in preobjects)
                     {
-                        UrnToIndex(path, urn);
+                        UrnToIndex(db.Name, path, urn, index);
                     }
                     
                     foreach (DependencyCollectionNode j in dc)
                     {
-
+                        
                         Microsoft.SqlServer.Management.Sdk.Sfc.Urn urn = j.Urn;
-                        UrnToIndex(path, urn);
+                        UrnToIndex(db.Name, path, urn, index);
+                       
                     }
 
-
+                    Console.WriteLine("EXPORTED ({0})", DateTime.UtcNow.Subtract(pinned));
+                    
 
                     return 0;
                 });
@@ -441,12 +470,10 @@ namespace sqlscripter
                 
                     disable_console = nouseprogress.HasValue();
 
-                    if(!validate_connection(sqlserver, sqldb, sqluser, sqlpsw))
-                    {
+                    ServerConnection serverConnection = get_server_connection(sqlserver, sqldb, sqluser, sqlpsw);
+                    if(null == serverConnection)
                         return 2;
-                    }
                     
-                    ServerConnection serverConnection = new ServerConnection(sqlserver.Value(), sqluser.Value(), sqlpsw.Value());
                     Server server = new Server(serverConnection);
 
                     
@@ -554,7 +581,10 @@ namespace sqlscripter
                 
                     disable_console = nouseprogress.HasValue();
 
-                    ServerConnection serverConnection = new ServerConnection(sqlserver.Value(), sqluser.Value(), sqlpsw.Value());
+                    ServerConnection serverConnection = get_server_connection(sqlserver, sqldb, sqluser, sqlpsw);
+                    if(null == serverConnection)
+                        return 2;
+                    
                     Server server = new Server(serverConnection);
 
                     Database db = server.Databases[sqldb.Value()];
@@ -579,6 +609,8 @@ namespace sqlscripter
                         handle_coverage(db, sql);
                         
                     }
+
+                    return 0;
 
                 });
 
@@ -620,19 +652,58 @@ namespace sqlscripter
             double p = (res.executed / res.total) * 100;
 
             System.Console.WriteLine("Coverage {0}% executed {1} of {2}", p, res.executed, res.total);
-
-            
         }
-        private static void UrnToIndex(string path, Microsoft.SqlServer.Management.Sdk.Sfc.Urn urn)
-        {
-            if (null != path)
-            {
-                System.IO.File.AppendAllText(path, NormalizeUrn(urn) + Environment.NewLine);
 
+        //private static 
+
+        private static void UrnToIndex(string target_db
+        , string path
+        , Microsoft.SqlServer.Management.Sdk.Sfc.Urn urn
+        , dependency_index index)
+        {
+            string regex = $"Database\\[@Name='{target_db}";
+
+            bool trouble = false;
+            string output_line = "";
+
+            if(!System.Text.RegularExpressions.Regex.IsMatch(urn.Value, regex))
+            {
+                output_line = string.Format("##External-Entity-Database\t{0}", urn.Value);
+                trouble = true;
             }
             else
             {
-                Console.Write(NormalizeUrn(urn));
+                string str_info = NormalizeUrn(urn);
+                obj_info info = ObjectInfo(str_info);
+                output_line = str_info;
+
+                if("UnresolvedEntity" == info.type)
+                {
+                    output_line = string.Format("##UnresolvedEntity\t{0}\t{1}", urn, str_info);
+                    trouble = true;
+                }
+            }
+
+            if(trouble)
+            {
+                string[] parents = index.get_parents(urn.Value);
+                if(null == parents)
+                {
+                    output_line += "\t->NO-PARENTS";
+                }
+                else
+                {
+                    output_line = string.Format("{1}\t->PARENTS:\t{0}", string.Join('\t', parents), output_line); 
+                }
+            }
+            
+            if (null != path)
+            {
+                System.IO.File.AppendAllText(path, output_line + Environment.NewLine);
+            }
+            else
+            {
+                Console.WriteLine(output_line);
             }
         }
 
@@ -759,13 +830,16 @@ namespace sqlscripter
                     objs[0] = db.Schemas[oi.name];
                 }
                                 
-
+                if(null == objs[0])
+                {
+                    throw new ScripterException(string.Format("Invalid type: {0} {1}", oi.type, obname));
+                }
                 //DependencyTree tr = scripter.DiscoverDependencies(objs, true);
-                //DependencyCollection dc = scripter.WalkDependencies(tr);
+                //DependencyCollection dc = scripter.WalkDependencies(tr)
 
                 if (null != output && progress)
                 {                    
-                    drawTextProgressBar(++jdx, count);
+                    drawTextProgressBar(++jdx, count, obname);
                 }
 
                 Script(scripter, objs, file);
