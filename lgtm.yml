@@ -1,0 +1,4 @@
+extraction:
+  csharp:
+    before_index:
+      - bash ./deps.sh

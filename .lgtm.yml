@@ -1,4 +1,0 @@
-extraction:
-  csharp:
-    after_prepare:
-      - bash deps.sh
