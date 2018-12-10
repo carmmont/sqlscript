@@ -57,7 +57,8 @@ ALTER TABLE [Gathering].[Exec_Query_Plans_1] ADD CONSTRAINT DF__Exec_Quer__times
 END
 
 GO
-DROP PROCEDURE IF EXISTS [dbo].[GET_ITEMS]
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GET_ITEMS]') AND type in (N'P', N'PC'))
+DROP PROCEDURE [dbo].[GET_ITEMS]
 GO
 create procedure GET_ITEMS
 AS
@@ -67,7 +68,8 @@ AS
 
 
 GO
-DROP PROCEDURE IF EXISTS [dbo].[NEW_ITEM]
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[NEW_ITEM]') AND type in (N'P', N'PC'))
+DROP PROCEDURE [dbo].[NEW_ITEM]
 GO
 create procedure NEW_ITEM(@NAME NVARCHAR(255))
 AS
@@ -76,7 +78,28 @@ AS
 
 
 GO
-DROP FUNCTION IF EXISTS [dbo].[FFF]
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[num_echo]') AND type in (N'FN', N'IF', N'TF', N'FS', N'FT'))
+DROP FUNCTION [dbo].[num_echo]
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date, ,>
+-- Description:	<Description, ,>
+-- =============================================
+CREATE FUNCTION num_echo 
+(
+	@n int
+)
+RETURNS int
+AS
+BEGIN
+	RETURN @N
+
+END
+
+GO
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FFF]') AND type in (N'FN', N'IF', N'TF', N'FS', N'FT'))
+DROP FUNCTION [dbo].[FFF]
 GO
 
 CREATE FUNCTION FFF
@@ -91,7 +114,8 @@ RETURN
 )
 
 GO
-DROP PROCEDURE IF EXISTS [dbo].[test_coverage]
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[test_coverage]') AND type in (N'P', N'PC'))
+DROP PROCEDURE [dbo].[test_coverage]
 GO
 -- =============================================
 -- Author:		<Author,,Name>
@@ -100,7 +124,7 @@ GO
 -- =============================================
 CREATE PROCEDURE [dbo].[test_coverage]
 	-- Add the parameters for the stored procedure here
-	@full bit = 0
+	@full int = 0
 AS
 BEGIN
     /*COMMENT
@@ -113,6 +137,8 @@ BEGIN
         select * from FFF()
     END
 
+    PRINT @full
+
     if @full > 1
     BEGIN
     -------------------------
@@ -121,7 +147,8 @@ BEGIN
 END
 
 GO
-DROP VIEW IF EXISTS [dbo].[view_1]
+IF  EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[view_1]'))
+DROP VIEW [dbo].[view_1]
 GO
 create view view_1
 as

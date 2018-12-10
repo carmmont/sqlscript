@@ -23,11 +23,11 @@ $current = Get-Location;
 
 Set-Location $target
 
-#export index
+"export index" | out-host
 dotnet run -- dbindex -S $server -d $database -U $user -P $psw -i index.txt --query-mode
-#export objects
+"export objects" | out-host
 dotnet run -- script -S $server -d $database -U $user -P $psw '-o' './sql' '-i' 'index.txt'
-#build final script
+"build final script" | out-host
 dotnet run -- build -S $server -d $database -U $user -P $psw '-b' './sql' '-i' 'index.txt' -o $script
 
 Set-Location $current

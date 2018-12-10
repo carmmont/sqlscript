@@ -670,7 +670,8 @@ namespace sqlscripter
             bool trouble = false;
             string output_line = "";
 
-            if(!System.Text.RegularExpressions.Regex.IsMatch(urn.Value, regex))
+            if(!System.Text.RegularExpressions.Regex.IsMatch(urn.Value, regex
+                , System.Text.RegularExpressions.RegexOptions.IgnoreCase))
             {
                 output_line = string.Format("##External-Entity-Database\t{0}", urn.Value);
                 trouble = true;
@@ -749,6 +750,7 @@ namespace sqlscripter
                         //, 
 
                         //, DriAll = true
+                        , TargetServerVersion = SqlServerVersion.Version100
                     };
 
                     System.Console.WriteLine("Target Version {0}", op.TargetServerVersion);

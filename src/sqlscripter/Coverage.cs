@@ -105,6 +105,8 @@ namespace sqlscripter
 
             XmlNodeList l = _doc.SelectNodes("//*[@QueryHash]");
 
+            //.SelectNodes("ancestor::*[@QueryHash]")
+
             
             _result = new Result();
             _result.query_hash = new List<string>();
