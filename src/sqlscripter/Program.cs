@@ -464,7 +464,9 @@ namespace sqlscripter
                 var target = command.Option("-t | --target", "Sql target Object", CommandOptionType.MultipleValue);
                 var output = command.Option("-o | --output", "Script Output", CommandOptionType.SingleValue);
                 var file = command.Option("-f | -i | --file", "Input File", CommandOptionType.SingleValue);
-                
+                var version = command.Option("--sql-version", "Sql Version Generation Target", CommandOptionType.SingleValue); 
+
+
                 command.OnExecute(() =>
                 {
                 
@@ -486,9 +488,15 @@ namespace sqlscripter
                     }
 
                     string outputdir = output.Value() ?? "./";
-                                           
+                
+                   SqlServerVersion sql_version = SqlServerVersion.Version100;
+
+                   if(version.HasValue())
+                   {
+                       sql_version = (SqlServerVersion) Enum.Parse(typeof(SqlServerVersion), version.Value());
+                   }
                     
-                   Script(objs, server.Databases[sqldb.Value()], outputdir, (!nouseprogress.HasValue()));
+                   Script(objs, server.Databases[sqldb.Value()], outputdir, (!nouseprogress.HasValue()), sql_version);
 
                    return 0;
                     
@@ -735,7 +743,7 @@ namespace sqlscripter
         */
 
         private static void Script(string[] target, Database db
-        , string output, bool progress)
+        , string output, bool progress, SqlServerVersion sql_version)//.Version100)
         {
             Scripter scripter = new Scripter(db.Parent);
                     ScriptingOptions op = new ScriptingOptions
@@ -750,7 +758,7 @@ namespace sqlscripter
                         //, 
 
                         //, DriAll = true
-                        , TargetServerVersion = SqlServerVersion.Version100
+                        , TargetServerVersion = sql_version
                     };
 
                     System.Console.WriteLine("Target Version {0}", op.TargetServerVersion);

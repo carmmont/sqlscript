@@ -26,7 +26,7 @@ Set-Location $target
 "export index" | out-host
 dotnet run -- dbindex -S $server -d $database -U $user -P $psw -i index.txt --query-mode
 "export objects" | out-host
-dotnet run -- script -S $server -d $database -U $user -P $psw '-o' './sql' '-i' 'index.txt'
+dotnet run -- script -S $server -d $database -U $user -P $psw '-o' './sql' '-i' 'index.txt' --sql-version 'Version100'
 "build final script" | out-host
 dotnet run -- build -S $server -d $database -U $user -P $psw '-b' './sql' '-i' 'index.txt' -o $script
 
