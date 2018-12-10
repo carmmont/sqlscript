@@ -575,6 +575,7 @@ namespace sqlscripter
                 var free_proccache = command.Option("-f | --free-proccache", @"Run DBCC FREEPROCCACHE before your test in order
                  to count only what you are running and not previous runs.
                  Do Not use in a production system.", CommandOptionType.NoValue);
+                var no_exec = command.Option("-n | --no-exec", @"Do not Run the procedure.", CommandOptionType.NoValue);
 
                 command.OnExecute(() =>
                 {
@@ -598,7 +599,7 @@ namespace sqlscripter
                     {                        
                         string sql = statement;
 
-                        handle_coverage(db, sql); 
+                        handle_coverage(db, sql, !no_exec.HasValue()); 
                     }
 
                     foreach (string indexfile in indexfiles.Values)
@@ -606,7 +607,7 @@ namespace sqlscripter
                         string[] lines = System.IO.File.ReadAllLines(indexfile);
                         string sql = string.Join("\r\n", lines);
 
-                        handle_coverage(db, sql);
+                        handle_coverage(db, sql, !no_exec.HasValue());
                         
                     }
 
@@ -641,17 +642,20 @@ namespace sqlscripter
             }
         }
 
-        private static void handle_coverage(Database db, string sql)
+        private static void handle_coverage(Database db, string sql, bool exec)
         {
             Coverage coverage = new Coverage();
 
             coverage.compile(db, sql);
 
-            Result res = coverage.Execute();
+            
+            
+            Result res = coverage.Execute(exec);
 
             double p = (res.executed / res.total) * 100;
 
             System.Console.WriteLine("Coverage {0}% executed {1} of {2}", p, res.executed, res.total);
+            
         }
 
         //private static 
@@ -746,6 +750,8 @@ namespace sqlscripter
 
                         //, DriAll = true
                     };
+
+                    System.Console.WriteLine("Target Version {0}", op.TargetServerVersion);
 
                     scripter.Options = op;
 

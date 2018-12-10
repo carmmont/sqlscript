@@ -68,6 +68,9 @@ namespace sqlscripter
             {
                 conn.Open();
                 SqlCommand cmd = conn.CreateCommand();
+                cmd.CommandTimeout = 1888;// * cmd.CommandTimeout;
+
+                //System.Console.WriteLine("Timeout {0}", cmd.CommandTimeout);
 
                 cmd.CommandText = $"USE {_db};"; 
                 cmd.ExecuteNonQuery();
@@ -110,24 +113,29 @@ namespace sqlscripter
             foreach(XmlNode n in l)
             {
                 string hash = n.Attributes.GetNamedItem("QueryHash").Value;
-                _result.query_hash.Add(hash);
-                System.Console.WriteLine(hash);
 
-                string statement = n.Attributes.GetNamedItem("StatementText").Value;
-                
-                covinput i = new covinput();
-                i.query_hash = hash;
-                i.statement_text = statement;
+                if(!_result.input.ContainsKey(hash))
+                {
+                    _result.query_hash.Add(hash);
+                    
+                    System.Console.WriteLine(", {0}", hash);
 
-                _result.input[hash] = i;
+                    string statement = n.Attributes.GetNamedItem("StatementText").Value;
+                    
+                    covinput i = new covinput();
+                    i.query_hash = hash;
+                    i.statement_text = statement;
+
+                    _result.input[hash] = i;
+                }
 
             }
 
-            //System.IO.File.WriteAllText("plan.xml", plan);
+            System.IO.File.WriteAllText("plan.xml", plan);
             
         }
 
-        public Result Execute()
+        public Result Execute(bool execute)
         {
 
             if(null == _result.query_hash || 0 == _result.query_hash.Count)
@@ -186,9 +194,11 @@ namespace sqlscripter
                     cmd.CommandText = $"USE {_db};"; 
                     cmd.ExecuteNonQuery();
 
-                    cmd.CommandText = _sql;
-                    cmd.ExecuteNonQuery();
-
+                    if(execute)
+                    {
+                        cmd.CommandText = _sql;
+                        cmd.ExecuteNonQuery();
+                    }
 
                     cmd.CommandText = sql; 
                     using(SqlDataReader dr = cmd.ExecuteReader())

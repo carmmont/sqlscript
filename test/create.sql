@@ -76,25 +76,6 @@ AS
 
 
 GO
-DROP FUNCTION IF EXISTS [dbo].[num_echo]
-GO
--- =============================================
--- Author:		<Author,,Name>
--- Create date: <Create Date, ,>
--- Description:	<Description, ,>
--- =============================================
-CREATE FUNCTION num_echo 
-(
-	@n int
-)
-RETURNS int
-AS
-BEGIN
-	RETURN @N
-
-END
-
-GO
 DROP FUNCTION IF EXISTS [dbo].[FFF]
 GO
 
