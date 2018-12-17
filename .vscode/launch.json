@@ -11,8 +11,13 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/src/sqlscripter/bin/Debug/netcoreapp2.1/sqlscripter.dll",
-            "args": ["dbindex", "-S", "127.0.0.1", "-U", "sa", "-P", "bits#999", "-d", "TESTDB", "-i", "dbindex", "--query-mode"],
-            "cwd": "${workspaceFolder}/src/sqlscripter",
+            //"args": ["dbindex", "-S", "127.0.0.1", "-U", "sa", "-P", "bits#999", "-d", "TESTDB", "-i", "dbindex", "--query-mode"]
+            
+            "args" : ["script", "-i",  "A:/alessandro/My Projects/vsonline/DBMAINT/index-synonyms.txt",  "-S",  ".,8091", "-U", "sa"
+                , "-P",  "Password12#", "-o", "A:/alessandro/My Projects/vsonline/DBMAINT"
+                , "-d", "dbmaint", "--sql-version", "Version80"]
+            
+            , "cwd": "${workspaceFolder}/src/sqlscripter",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
             "console": "integratedTerminal",
             "stopAtEntry": false,

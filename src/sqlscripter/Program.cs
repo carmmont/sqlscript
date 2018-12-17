@@ -462,7 +462,7 @@ namespace sqlscripter
                 command.Description = $"{command.Name} allows to script objects listed in a file or in the command line";
 
                 var target = command.Option("-t | --target", "Sql target Object", CommandOptionType.MultipleValue);
-                var output = command.Option("-o | --output", "Script Output", CommandOptionType.SingleValue);
+                var output = command.Option("-o | --output", "Scripts Directory Output", CommandOptionType.SingleValue);
                 var file = command.Option("-f | -i | --file", "Input File", CommandOptionType.SingleValue);
                 var version = command.Option("--sql-version", "Sql Version Generation Target", CommandOptionType.SingleValue); 
 
@@ -768,6 +768,14 @@ namespace sqlscripter
             Script(target, db, scripter, output,progress);
             
         }
+
+        private static void check_oi(SqlSmoObject obj, obj_info oi)
+        {
+            if(null == obj)
+                throw new ScripterException(
+                    string.Format("cannot find {0}: {2} {1}", oi.type, oi.name, oi.schema)
+                );
+        }
         private static void Script(string[] target, Database db
         , Scripter scripter, string output, bool progress)
         {
@@ -805,32 +813,35 @@ namespace sqlscripter
                 {
                     scripter.Options.DriDefaults = true;
                     objs[0] = db.Tables[oi.name, oi.schema];
+                    check_oi(objs[0], oi);
                 }
 
                 if ("StoredProcedure" == oi.type)
                 {
                     objs[0] = db.StoredProcedures[oi.name, oi.schema];
-                                        
+                    check_oi(objs[0], oi);                    
                     ScriptDrop(scripter, objs, file);
                 }
 
                 if ("View" == oi.type)
                 {
                     objs[0] = db.Views[oi.name, oi.schema];
-                    
+                    check_oi(objs[0], oi);
                     ScriptDrop(scripter, objs, file);
                 }
 
                 if ("Synonym" == oi.type)
                 {
                     objs[0] = db.Synonyms[oi.name, oi.schema];
+                    check_oi(objs[0], oi);
+                    ScriptDrop(scripter, objs, file);
 
                 }
 
                 if ("UserDefinedFunction" == oi.type)
                 {
                     objs[0] = db.UserDefinedFunctions[oi.name, oi.schema];
-
+                    check_oi(objs[0], oi);
                     ScriptDrop(scripter, objs, file);
                     
                 }
@@ -838,12 +849,13 @@ namespace sqlscripter
                 if ("UserDefinedType" == oi.type)
                 {
                     objs[0] = db.UserDefinedTypes[oi.name, oi.schema];
-
+                    check_oi(objs[0], oi);
                 }
 
                 if ("Schema" == oi.type)
                 {
                     objs[0] = db.Schemas[oi.name];
+                    check_oi(objs[0], oi);
                 }
                                 
                 if(null == objs[0])

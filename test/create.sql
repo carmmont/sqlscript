@@ -57,8 +57,7 @@ ALTER TABLE [Gathering].[Exec_Query_Plans_1] ADD CONSTRAINT DF__Exec_Quer__times
 END
 
 GO
-IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GET_ITEMS]') AND type in (N'P', N'PC'))
-DROP PROCEDURE [dbo].[GET_ITEMS]
+DROP PROCEDURE IF EXISTS [dbo].[GET_ITEMS]
 GO
 create procedure GET_ITEMS
 AS
@@ -68,8 +67,7 @@ AS
 
 
 GO
-IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[NEW_ITEM]') AND type in (N'P', N'PC'))
-DROP PROCEDURE [dbo].[NEW_ITEM]
+DROP PROCEDURE IF EXISTS [dbo].[NEW_ITEM]
 GO
 create procedure NEW_ITEM(@NAME NVARCHAR(255))
 AS
@@ -78,8 +76,7 @@ AS
 
 
 GO
-IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[num_echo]') AND type in (N'FN', N'IF', N'TF', N'FS', N'FT'))
-DROP FUNCTION [dbo].[num_echo]
+DROP FUNCTION IF EXISTS [dbo].[num_echo]
 GO
 -- =============================================
 -- Author:		<Author,,Name>
@@ -98,8 +95,7 @@ BEGIN
 END
 
 GO
-IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FFF]') AND type in (N'FN', N'IF', N'TF', N'FS', N'FT'))
-DROP FUNCTION [dbo].[FFF]
+DROP FUNCTION IF EXISTS [dbo].[FFF]
 GO
 
 CREATE FUNCTION FFF
@@ -114,8 +110,7 @@ RETURN
 )
 
 GO
-IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[test_coverage]') AND type in (N'P', N'PC'))
-DROP PROCEDURE [dbo].[test_coverage]
+DROP PROCEDURE IF EXISTS [dbo].[test_coverage]
 GO
 -- =============================================
 -- Author:		<Author,,Name>
@@ -147,8 +142,7 @@ BEGIN
 END
 
 GO
-IF  EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[view_1]'))
-DROP VIEW [dbo].[view_1]
+DROP VIEW IF EXISTS [dbo].[view_1]
 GO
 create view view_1
 as
