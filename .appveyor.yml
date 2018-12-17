@@ -110,7 +110,7 @@ build_script:
         Set-AppveyorBuildVariable -Name "VERSION" -Value $env:VERSION;
     - pwsh: dotnet restore ./sqlscripter.sln
     - pwsh: dotnet publish -c Release -o out ./sqlscripter.sln /p:BuildNumber=$env:VERSION
-    - pwsh: dotnet publish -c Release -o Win64 --runtime "win-x64" ./sqlscripter.sln /p:BuildNumber=$env:VERSION
+    #- pwsh: dotnet publish -c Release -o Win64 --runtime "win-x64" ./sqlscripter.sln /p:BuildNumber=$env:VERSION
     - pwsh: |
         dotnet pack -c Release -o Pack ./sqlscripter.sln /p:BuildNumber=$env:VERSION
         $pkg = (gi ./src/sqlscripter/Pack/*.nupkg).FullName
@@ -121,7 +121,7 @@ build_script:
 # scripts to run after build
 after_build:
         - ps: 7z a sqlscripter.zip './src/sqlscripter/out/*';
-        - ps: 7z a sqlscripterx64.zip './src/sqlscripter/Win64/*'; 
+        #- ps: 7z a sqlscripterx64.zip './src/sqlscripter/Win64/*'; 
 
 # to disable automatic builds
 #build: off
@@ -192,8 +192,8 @@ test_script:
 artifacts:
     - path: sqlscripter.zip
       name: sqlscripter
-    - path: sqlscripterx64.zip
-      name: sqlscripterx64
+    #- path: sqlscripterx64.zip
+    #  name: sqlscripterx64
 #- path: '.\test\bin\Win32\Release\mg.pdb'
 #  name: mg.pdb
 #- path: win-release.zip
