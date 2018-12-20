@@ -9,13 +9,13 @@ Sql Scripter is an opinionated tool to implement a complex CI/CD pipeline on sql
 ## Install latast version
 
 ```bash
-dotnet tool install sqlscripter
+dotnet tool install -g sqlscripter
 ```
 
 or update:
 
 ```bash
-dotnet tool update sqlscripter
+dotnet tool update -g sqlscripter
 ```
 
 

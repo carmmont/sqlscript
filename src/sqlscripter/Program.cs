@@ -535,7 +535,10 @@ namespace sqlscripter
 
                         foreach (string indexfile in indexfiles.Values)
                         {
-                            string indexfilepath = System.IO.Path.GetFullPath(indexfile);
+                            string indexfilepath = System.IO.Path.GetFullPath(System.IO.Path.Join(basep, indexfile));
+                            if(!System.IO.File.Exists(indexfilepath))
+                                indexfilepath = System.IO.Path.GetFullPath(indexfile);
+
 
                             System.Console.WriteLine("Adding " + System.IO.Path.GetFileName(indexfile));
 
@@ -645,24 +648,46 @@ namespace sqlscripter
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine(ex.ToString());
+                ConsoleColor color = Console.ForegroundColor;
+                try{
+                    
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Error.WriteLine(ex.Message);
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                    Console.Error.WriteLine(ex.ToString());
+                }
+                finally
+                {
+                    Console.ForegroundColor = color;
+                }
+                
                 return 99;
             }
         }
 
-        private static void handle_coverage(Database db, string sql, bool exec)
+        private static void handle_coverage(Database db, string sql, bool exec, bool detail = false)
         {
             Coverage coverage = new Coverage();
 
             coverage.compile(db, sql);
 
-            
-            
             Result res = coverage.Execute(exec);
 
             double p = (res.executed / res.total) * 100;
 
             System.Console.WriteLine("Coverage {0}% executed {1} of {2}", p, res.executed, res.total);
+            
+            if(detail)
+            {
+                string[] missing = res.find_not_covered();
+
+                foreach(string missed in missing)
+                {
+                    System.Console.WriteLine("\t, {0} ", missed);
+                }
+            }
+
+            
             
         }
 
@@ -745,6 +770,9 @@ namespace sqlscripter
         private static void Script(string[] target, Database db
         , string output, bool progress, SqlServerVersion sql_version)//.Version100)
         {
+            if(null == db)
+                throw new ScripterException("Invalid Database");
+
             Scripter scripter = new Scripter(db.Parent);
                     ScriptingOptions op = new ScriptingOptions
                     {

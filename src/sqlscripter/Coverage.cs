@@ -11,7 +11,7 @@ namespace sqlscripter
     public class cov
     {        
         public string query_hash;
-        public string statement_text;
+        //public string statement_text;
     }
     public class covdata: cov
     {        
@@ -22,6 +22,9 @@ namespace sqlscripter
         public long total_logical_writes;
         public System.DateTime last_execution_time;
         public System.DateTime creation_time;
+        public long statement_start_offset;
+        public long statement_end_offset;
+        public string sql_handle;
         public List<covdata> extra = new List<covdata>();
     }
 
@@ -42,6 +45,19 @@ namespace sqlscripter
 
         public double total { get { return query_hash.Count; }}
 
+        public string[] find_not_covered()
+        {
+            List<string> missing = new List<string>();
+            foreach(string hash in query_hash)
+            {
+                if(null == result[hash])
+                {
+                    missing.Add(hash);
+                }
+            }
+
+            return missing.ToArray();
+        }
 
     }
     public class Coverage
@@ -122,18 +138,20 @@ namespace sqlscripter
                     
                     System.Console.WriteLine(", {0}", hash);
 
-                    string statement = n.Attributes.GetNamedItem("StatementText").Value;
+                    //string statement = n.Attributes.GetNamedItem("StatementText").Value;
                     
                     covinput i = new covinput();
                     i.query_hash = hash;
-                    i.statement_text = statement;
+                    //i.statement_text = statement;
 
                     _result.input[hash] = i;
                 }
 
             }
 
+#if DEBUG
             System.IO.File.WriteAllText("plan.xml", plan);
+#endif
             
         }
 
@@ -147,14 +165,7 @@ namespace sqlscripter
                 --DBCC FREEPROCCACHE
                 SELECT 
                 query_hash
-                , 
-                    SUBSTRING(qt.text, (QS.statement_start_offset/2) + 1,
-                    ((CASE statement_end_offset 
-                        WHEN -1 THEN DATALENGTH(qt.text)
-                        WHEN 0  THEN DATALENGTH(qt.text)
-                        ELSE QS.statement_end_offset END 
-                            - QS.statement_start_offset)/2) + 1)
-                AS statement_text
+                
                 , execution_count 
                 , total_worker_time 
                 , total_logical_reads
@@ -162,6 +173,9 @@ namespace sqlscripter
                 , total_logical_writes
                 , qs.last_execution_time
                 , creation_time
+                , QS.statement_start_offset
+                , QS.statement_end_offset
+                , qs.sql_handle
 
                         FROM    sys.dm_exec_query_stats AS qs
                         CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) AS qt
@@ -208,7 +222,8 @@ namespace sqlscripter
                         
                         while(dr.Read())
                         {
-                            string hash = System.BitConverter.ToString(dr.GetSqlBinary(0).Value);
+                            int idx = 0;
+                            string hash = System.BitConverter.ToString(dr.GetSqlBinary(idx++).Value);
 
                             hash = hash.Replace("-", "");
                             hash = "0x" + hash;
@@ -219,16 +234,20 @@ namespace sqlscripter
 
                             c.query_hash = hash;
                             
-                            c.statement_text = dr.GetSqlString(1).ToString();
-                            c.execution_count = dr.GetSqlInt64(2).Value;
+                            //c.statement_text = dr.GetSqlString(1).ToString();
+                            c.execution_count = dr.GetSqlInt64(idx++).Value;
 
-                            c.total_worker_time = dr.GetSqlInt64(3).Value;
-                            c.total_logical_reads = dr.GetSqlInt64(4).Value;
-                            c.total_physical_reads = dr.GetSqlInt64(5).Value; 
-                            c.total_logical_writes = dr.GetSqlInt64(6).Value;
+                            c.total_worker_time = dr.GetSqlInt64(idx++).Value;
+                            c.total_logical_reads = dr.GetSqlInt64(idx++).Value;
+                            c.total_physical_reads = dr.GetSqlInt64(idx++).Value; 
+                            c.total_logical_writes = dr.GetSqlInt64(idx++).Value;
 
-                            c.last_execution_time = dr.GetSqlDateTime(7).Value;
-                            c.creation_time = dr.GetSqlDateTime(8).Value;
+                            c.last_execution_time = dr.GetSqlDateTime(idx++).Value;
+                            c.creation_time = dr.GetSqlDateTime(idx++).Value;
+
+                            c.statement_start_offset = dr.GetSqlInt32(idx++).Value;
+                            c.statement_end_offset  = dr.GetSqlInt32(idx++).Value;
+                            c.sql_handle = System.BitConverter.ToString(dr.GetSqlBinary(idx++).Value);
 
                             if(null == _result.result[hash])
                             {
@@ -238,8 +257,6 @@ namespace sqlscripter
                             else
                                 _result.result[hash].extra.Add(c);
 
-                            
-                            
                         }
                         
                     }
