@@ -144,7 +144,7 @@ build_script:
         $pkg = (gi ./src/sqlscripter/Pack/*.nupkg).FullName
         Push-AppveyorArtifact $pkg
     - pwsh: if("Visual Studio 2017" -eq $env:APPVEYOR_BUILD_WORKER_IMAGE){ Set-AppveyorBuildVariable -Name "SQLINSTANCE" -Value $env:SQLINSTANCE2; }
-    - pwsh: "SQL SERVER: $env:SQLINSTANCE" | oh;
+    - pwsh: $sql = "SQLSERVER $env:SQLINSTANCE"; $sql | oh;
     - pwsh: get-service | ? {$_ -match "sql"}
 
 
