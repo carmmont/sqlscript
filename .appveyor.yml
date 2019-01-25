@@ -22,6 +22,18 @@ image: Visual Studio 2017
 environment:
   coverall:
     secure: 2dkcctTsGqQPGWhvydzFChjctp33OSEkfclaRYUDWkmDIV0uxgSZ4j3rvHMZakm3
+  matrix:
+  - db: sql2008
+    SQLINSTANCE: (local)\SQL2008R2SP2
+  - db: sql2016
+    SQLINSTANCE: (local)\SQL2016
+#    provider: mysql
+#
+#  - db: mssql
+#    provider: mssql
+#    password:
+#      secure: $#(JFDA)jQ@#$
+  
   
   # this is how to set encrypted variable. Go to "Encrypt data" page in account menu to encrypt data.
   #my_secure_var1:
@@ -32,14 +44,7 @@ environment:
 #    connection_string: server=12;password=13;
 #    service_url: https://127.0.0.1:8090
 #
-#  matrix:
-#  - db: mysql
-#    provider: mysql
-#
-#  - db: mssql
-#    provider: mssql
-#    password:
-#      secure: $#(JFDA)jQ@#$
+
 
 # this is how to allow failing jobs in the matrix
 #matrix:
@@ -52,6 +57,7 @@ environment:
 
 # enable service required for build/tests
 services:
+  - mssql2008r2sp2
   - mssql2016
 
 #  - iis                 # start IIS
@@ -149,9 +155,9 @@ before_test:
     - dotnet restore
     - dotnet publish ./src/MiniCover/MiniCover.csproj -o out -c Release
     - cd ..
-    - sqlcmd -b -S "(local)\SQL2016" -U sa -P "Password12!" -Q "CREATE DATABASE TESTDB"
-    - sqlcmd -b -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i ./test/create.sql
-    - sqlcmd -b -S "(local)\SQL2016" -U sa -P "Password12!" -Q "CREATE DATABASE TESTDB2" 
+    - sqlcmd -b -S %SQLINSTANCE% -U sa -P "Password12!" -Q "CREATE DATABASE TESTDB"
+    - sqlcmd -b -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -i ./test/create.sql
+    - sqlcmd -b -S %SQLINSTANCE% -U sa -P "Password12!" -Q "CREATE DATABASE TESTDB2" 
 
 # scripts to run after tests
 after_test:
@@ -160,20 +166,20 @@ after_test:
 test_script:
     - dotnet ./minicover/src/MiniCover/out/dotnet-minicover.dll instrument --workdir ./ --assemblies src/**/out/**/*.dll --sources src/**/*.cs
     - dotnet ./src/sqlscripter/out/sqlscripter.dll --help
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -f -s "exec test_coverage 0"
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -f -s "exec test_coverage 1"
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -n -s "exec test_coverage 0" --save info.xml --detail
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll info -S "(local)\SQL2016" -U sa -P "Password12!" -d MASTER 
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress 
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index2.txt --no-progress --query-mode
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -f -s "exec test_coverage 0"
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -f -s "exec test_coverage 1"
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -n -s "exec test_coverage 0" --save info.xml --detail
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll info -S %SQLINSTANCE% -U sa -P "Password12!" -d MASTER 
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress 
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -i index2.txt --no-progress --query-mode
     - pwsh: (gc ./index.txt | out-string) -eq (gc ./index2.txt | out-string) 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll urn -u "Server[@Name='4f4c6527222b']/Database[@Name='MONITORING']/Table[@Name='Procedures' and @Schema='Gathering']"
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress
     - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -o create.sql --no-progress
     - pwsh: (gc .\create.sql | out-string) -eq (gc ./test/create.sql | out-string)
-    - sqlcmd -b -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB2 -i ./create.sql
+    - sqlcmd -b -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB2 -i ./create.sql
     #idempotent
-    - sqlcmd -b -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB2 -i ./create.sql
+    - sqlcmd -b -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB2 -i ./create.sql
     #- cd tools
     #- dotnet minicover report --workdir ../ --threshold 90
     #- pwsh: ls env: | ? {-Not ($_.name -match 'coverall')}
