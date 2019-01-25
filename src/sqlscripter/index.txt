@@ -2,6 +2,8 @@
 Schema:[].[Gathering]
 Table:[dbo].[TABLE1]
 Table:[Gathering].[Exec_Query_Plans_1]
+##External-Entity-Database	Server[@Name='4f4c6527222b']/Database[@Name='dbmaint']/UnresolvedEntity[@Name='collect_all' and @Schema='Gathering']	->PARENTS:	Server[@Name='4f4c6527222b']/Database[@Name='TESTDB']/StoredProcedure[@Name='refresh' and @Schema='dbo']
+StoredProcedure:[dbo].[refresh]
 StoredProcedure:[dbo].[GET_ITEMS]
 StoredProcedure:[dbo].[NEW_ITEM]
 UserDefinedFunction:[dbo].[num_echo]

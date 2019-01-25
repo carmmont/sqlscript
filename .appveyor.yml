@@ -162,7 +162,7 @@ test_script:
     - dotnet ./src/sqlscripter/out/sqlscripter.dll --help
     - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -f -s "exec test_coverage 0"
     - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -f -s "exec test_coverage 1"
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -n -s "exec test_coverage 0" --save info.xml
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -n -s "exec test_coverage 0" --save info.xml --detail
     - dotnet ./src/sqlscripter/out/sqlscripter.dll info -S "(local)\SQL2016" -U sa -P "Password12!" -d MASTER 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S "(local)\SQL2016" -U sa -P "Password12!" -d TESTDB -i index2.txt --no-progress --query-mode

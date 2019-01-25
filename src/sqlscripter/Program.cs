@@ -102,10 +102,37 @@ namespace sqlscripter
 
         }
 
-        static void add_urn_from_query(Database db, string obj, Func<string, string, string> geturn, UrnCollection urns, bool progress = true)
+        static void add_urn_from_query(Database db, string obj
+            , Func<string, string, string> geturn
+            , UrnCollection urns
+            , bool progress = true
+            , Func<string, string, bool> validate = null
+            )
         {
             var dt = DateTime.UtcNow;
             Console.WriteLine("PROCESSING {0}", obj);
+
+            /*
+            select CAST(
+ case 
+    when sp.is_ms_shipped = 1 then 1
+    when (
+        select 
+            major_id 
+        from 
+            sys.extended_properties 
+        where 
+            major_id = sp.object_id and 
+            minor_id = 0 and 
+            class = 1 and 
+            name = N'microsoft_database_tools_support') 
+        is not null then 1
+    else 0
+end          
+             AS bit) AS [IsSystemObject],
+             * from sys.objects sp 
+             where type = 'P'
+            */
 
             DataSet ds = db.ExecuteWithResults(@"select s.name as [schema], o.name from sys.objects o
                     inner join sys.schemas s
@@ -116,10 +143,17 @@ namespace sqlscripter
            
             foreach (DataRow r in ds.Tables[0].Rows)
             {
-                    if(progress)
-                        drawTextProgressBar(++idx, count);
+                if(progress)
+                    drawTextProgressBar(++idx, count);
+                
+                bool add = true;
+
+                if(null != validate)
+                    add = validate(r[1].ToString(), r[0].ToString());
+
                 //urns.Add(db.StoredProcedures[r[1].ToString(), r[0].ToString()].Urn);
-                urns.Add(geturn(r[1].ToString(), r[0].ToString()));
+                if(add)
+                    urns.Add(geturn(r[1].ToString(), r[0].ToString()));
                         
             }
 
@@ -348,7 +382,8 @@ namespace sqlscripter
 
                     if (fast)
                     {
-                        add_urn_from_query(db, "P", (sp, sch) => db.StoredProcedures[sp, sch].Urn, urns, (!nouseprogress.HasValue()));
+                        add_urn_from_query(db, "P", (sp, sch) => db.StoredProcedures[sp, sch].Urn, urns, (!nouseprogress.HasValue())
+                        , (sp, sch) => !db.StoredProcedures[sp, sch].IsSystemObject );
                     }
                     else
                     {
@@ -587,6 +622,7 @@ namespace sqlscripter
                  to count only what you are running and not previous runs.
                  Do Not use in a production system.", CommandOptionType.NoValue);
                 var no_exec = command.Option("-n | --no-exec", @"Do not Run the procedure.", CommandOptionType.NoValue);
+                var datail = command.Option("--detail", @"Provide the list of not covered query_hash", CommandOptionType.NoValue);
                 var save = command.Option("--save", @"save a test result with performance and coverage", CommandOptionType.SingleValue);
                 command.OnExecute(() =>
                 {
@@ -617,7 +653,7 @@ namespace sqlscripter
                     {                        
                         string sql = statement;
 
-                        handle_coverage(db, sql, !no_exec.HasValue(), false, save_path); 
+                        handle_coverage(db, sql, !no_exec.HasValue(), datail.HasValue(), save_path); 
                     }
 
                     foreach (string indexfile in indexfiles.Values)
@@ -625,7 +661,7 @@ namespace sqlscripter
                         string[] lines = System.IO.File.ReadAllLines(indexfile);
                         string sql = string.Join("\r\n", lines);
 
-                        handle_coverage(db, sql, !no_exec.HasValue(), false, save_path);
+                        handle_coverage(db, sql, !no_exec.HasValue(), datail.HasValue(), save_path);
                         
                     }
 

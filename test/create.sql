@@ -57,7 +57,29 @@ ALTER TABLE [Gathering].[Exec_Query_Plans_1] ADD CONSTRAINT DF__Exec_Quer__times
 END
 
 GO
-DROP PROCEDURE IF EXISTS [dbo].[GET_ITEMS]
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[refresh]') AND type in (N'P', N'PC'))
+DROP PROCEDURE [dbo].[refresh]
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+CREATE PROCEDURE [dbo].[refresh]
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+    -- Insert statements for procedure here
+	exec sp_refreshview 'view_1'
+    exec dbmaint.Gathering.collect_all
+END
+
+GO
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GET_ITEMS]') AND type in (N'P', N'PC'))
+DROP PROCEDURE [dbo].[GET_ITEMS]
 GO
 create procedure GET_ITEMS
 AS
@@ -67,7 +89,8 @@ AS
 
 
 GO
-DROP PROCEDURE IF EXISTS [dbo].[NEW_ITEM]
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[NEW_ITEM]') AND type in (N'P', N'PC'))
+DROP PROCEDURE [dbo].[NEW_ITEM]
 GO
 create procedure NEW_ITEM(@NAME NVARCHAR(255))
 AS
@@ -76,7 +99,8 @@ AS
 
 
 GO
-DROP FUNCTION IF EXISTS [dbo].[num_echo]
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[num_echo]') AND type in (N'FN', N'IF', N'TF', N'FS', N'FT'))
+DROP FUNCTION [dbo].[num_echo]
 GO
 -- =============================================
 -- Author:		<Author,,Name>
@@ -95,7 +119,8 @@ BEGIN
 END
 
 GO
-DROP FUNCTION IF EXISTS [dbo].[FFF]
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FFF]') AND type in (N'FN', N'IF', N'TF', N'FS', N'FT'))
+DROP FUNCTION [dbo].[FFF]
 GO
 
 CREATE FUNCTION FFF
@@ -110,7 +135,8 @@ RETURN
 )
 
 GO
-DROP PROCEDURE IF EXISTS [dbo].[test_coverage]
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[test_coverage]') AND type in (N'P', N'PC'))
+DROP PROCEDURE [dbo].[test_coverage]
 GO
 -- =============================================
 -- Author:		<Author,,Name>
@@ -142,7 +168,8 @@ BEGIN
 END
 
 GO
-DROP VIEW IF EXISTS [dbo].[view_1]
+IF  EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[view_1]'))
+DROP VIEW [dbo].[view_1]
 GO
 create view view_1
 as
@@ -150,5 +177,7 @@ SELECT        TABLE1.*
 FROM            TABLE1
 
 GO
-IF NOT EXISTS (SELECT * FROM sys.synonyms WHERE name = N'TABLE2' AND schema_id = SCHEMA_ID(N'dbo'))
+IF  EXISTS (SELECT * FROM sys.synonyms WHERE name = N'TABLE2' AND schema_id = SCHEMA_ID(N'dbo'))
+DROP SYNONYM [dbo].[TABLE2]
+GO
 CREATE SYNONYM [dbo].[TABLE2] FOR [TESTDB].[dbo].[TABLE1]
