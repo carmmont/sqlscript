@@ -194,7 +194,10 @@ test_script:
     - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -f -s "exec test_coverage 0"
     - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -f -s "exec test_coverage 1"
     - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -n -s "exec test_coverage 0" --save info.xml --detail
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S %SQLINSTANCE% -U sa -P "Password12!" -d XXXXXX -n -s "exec test_coverage 0" & exit 0
     - dotnet ./src/sqlscripter/out/sqlscripter.dll info -S %SQLINSTANCE% -U sa -P "Password12!" -d MASTER 
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll info -S %SQLINSTANCE% & exit 0
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll info & exit 0
     - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll dbindex -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -i index2.txt --no-progress --query-mode
     - pwsh: (gc ./index.txt | out-string) -eq (gc ./index2.txt | out-string) 
