@@ -16,19 +16,24 @@ version: 0.0.{build}
 #---------------------------------#
 
 # Build worker image (VM template)
-image: Visual Studio 2017
+image: 
+  - Visual Studio 2015
+  - Visual Studio 2017
 
 # environment variables
 environment:
   coverall:
     secure: 2dkcctTsGqQPGWhvydzFChjctp33OSEkfclaRYUDWkmDIV0uxgSZ4j3rvHMZakm3
   matrix:
-  - db: sql2008
+  - db: sql2008-14
     SQLINSTANCE: (local)\SQL2008R2SP2
-  - db: sql2012
+    SQLINSTANCE2: (local)\SQL2014
+  - db: sql2012-16
     SQLINSTANCE: (local)\SQL2012SP1
-  - db: sql2016
-    SQLINSTANCE: (local)\SQL2016
+    SQLINSTANCE2: (local)\SQL2016
+  - db: sql2014-17
+    SQLINSTANCE: (local)\SQL2014
+    SQLINSTANCE2: (local)\SQL2017
   
 #    provider: mysql
 #
@@ -73,7 +78,9 @@ init:
 services:
   - mssql2008r2sp2
   - mssql2012sp1
+  - mssql2014
   - mssql2016
+  - mssql2017
 
 #  - iis                 # start IIS
 
@@ -136,7 +143,8 @@ build_script:
         dotnet pack -c Release -o Pack ./sqlscripter.sln /p:BuildNumber=$env:VERSION
         $pkg = (gi ./src/sqlscripter/Pack/*.nupkg).FullName
         Push-AppveyorArtifact $pkg
-    - pwsh: $env:APPVEYOR_BUILD_WORKER_IMAGE 
+    - pwsh: if("Visual Studio 2017" -eq $env:APPVEYOR_BUILD_WORKER_IMAGE){ Set-AppveyorBuildVariable -Name "SQLINSTANCE" -Value $env:SQLINSTANCE2; }
+    - pwsh: "SQL SERVER: $env:SQLINSTANCE"
 
 
 
