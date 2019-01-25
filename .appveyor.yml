@@ -145,7 +145,7 @@ build_script:
         Push-AppveyorArtifact $pkg
     - pwsh: if("Visual Studio 2017" -eq $env:APPVEYOR_BUILD_WORKER_IMAGE){ Set-AppveyorBuildVariable -Name "SQLINSTANCE" -Value $env:SQLINSTANCE2; }
     - pwsh: $sql = "SQLSERVER $env:SQLINSTANCE"; $sql | oh;
-    - pwsh: get-service | ? {$_ -match "sql"}
+    #- pwsh: get-service | ? {$_ -match "sql"}
 
 
 
