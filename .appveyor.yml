@@ -16,7 +16,7 @@ version: 0.0.{build}
 #---------------------------------#
 
 # Build worker image (VM template)
-image: Visual Studio 2015
+image: Visual Studio 2017
 
 # environment variables
 environment:
@@ -25,8 +25,11 @@ environment:
   matrix:
   - db: sql2008
     SQLINSTANCE: (local)\SQL2008R2SP2
+  - db: sql2012
+    SQLINSTANCE: (local)\SQL2012SP1
   - db: sql2016
     SQLINSTANCE: (local)\SQL2016
+  
 #    provider: mysql
 #
 #  - db: mssql
@@ -54,10 +57,22 @@ environment:
 #cache:
   #- packages -> **\packages.config  # preserve "packages" directory in the root of build folder but will reset it if packages.config is modified
 
+init:
+  - pwsh: | 
+      Get-ChildItem -Path 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\' |
+      Where-Object {
+          $_.Name -imatch 'MSSQL[_\d]+\.SQL.*'
+      } |
+      ForEach-Object {
 
+          Write-Host "Setting $((Get-ItemProperty $_.PSPath).'(default)') to dynamic ports"
+          Set-ItemProperty (Join-Path $_.PSPath 'mssqlserver\supersocketnetlib\tcp\ipall') -Name TcpDynamicPorts -Value '0'
+          Set-ItemProperty (Join-Path $_.PSPath 'mssqlserver\supersocketnetlib\tcp\ipall') -Name TcpPort -Value ([string]::Empty)
+      }
 # enable service required for build/tests
 services:
   - mssql2008r2sp2
+  - mssql2012sp1
   - mssql2016
 
 #  - iis                 # start IIS
