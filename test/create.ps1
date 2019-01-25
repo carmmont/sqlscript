@@ -3,9 +3,28 @@ param([string] $psw = $null
     , [string] $database = "testdb"
     , [string] $server = "."
     , [string] $script = "create.sql"
+    , [string] $action = "export"
 )
 
 $ErrorActionPreference = "Stop";
+
+function  export() {
+    
+"export index" | out-host
+dotnet run -- dbindex -S $server -d $database -U $user -P $psw -i index.txt --query-mode
+"export objects" | out-host
+dotnet run -- script -S $server -d $database -U $user -P $psw '-o' './sql' '-i' 'index.txt' --sql-version 'Version100'
+"build final script" | out-host
+dotnet run -- build -S $server -d $database -U $user -P $psw '-b' './sql' '-i' 'index.txt' -o $script
+    
+}
+
+function coverage() {
+    "run test coverage" | Out-Host
+    dotnet run -- coverage -S $server -d $database -U $user -P $psw --save "test.xml" -f -s "exec test_coverage 0" 
+}
+
+
 
 $my_dir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 
@@ -23,12 +42,7 @@ $current = Get-Location;
 
 Set-Location $target
 
-"export index" | out-host
-dotnet run -- dbindex -S $server -d $database -U $user -P $psw -i index.txt --query-mode
-"export objects" | out-host
-dotnet run -- script -S $server -d $database -U $user -P $psw '-o' './sql' '-i' 'index.txt' --sql-version 'Version100'
-"build final script" | out-host
-dotnet run -- build -S $server -d $database -U $user -P $psw '-b' './sql' '-i' 'index.txt' -o $script
+Invoke-Expression $action
 
 Set-Location $current
 

@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Xml;
 using System.Collections.Generic;
+using System.Xml.Schema;
 
 namespace sqlscripter
 {
@@ -67,10 +68,10 @@ namespace sqlscripter
         string _sql;
         string _connection;
         string _db;
-
         Result _result;
 
-
+        private const string PREFIX = "sqlscripter";
+        private const string NS = "https://github.com/aseduto/sqlscript";
         public void compile(Database db, string sql)
         {
             _db = db.Name;
@@ -249,6 +250,9 @@ namespace sqlscripter
                             c.statement_end_offset  = dr.GetSqlInt32(idx++).Value;
                             c.sql_handle = System.BitConverter.ToString(dr.GetSqlBinary(idx++).Value);
 
+                            c.sql_handle = c.sql_handle.Replace("-", "");
+                            c.sql_handle = "0x" + c.sql_handle;
+
                             if(null == _result.result[hash])
                             {
                                 _result.result[hash] = c;
@@ -261,17 +265,74 @@ namespace sqlscripter
                         
                     }
 
-                    
-
                     conn.Close();
                 }
 
            
-           
-
-           return _result;
+              return _result;
 
         }
+
+        private void add_attribute(XmlNode n, string name, string val)
+        {
+            XmlAttribute att = _doc.CreateAttribute(PREFIX, name, NS);
+            att.Value = val;
+            n.Attributes.Append(att);
+        }
+        
+        public void Save(string path)
+        {
+
+            if(null == _doc)
+                throw new ScripterException("no compile available. Invalid doc. Please call compile");
+
+            XmlSchema schema = new XmlSchema();
+            schema.Namespaces.Add(PREFIX, NS);
+
+            _doc.Schemas.Add(schema);
+
+            if(null == _result.result)
+                throw new ScripterException("no result available. Invalid result. Please call execute");
+             
+            foreach(string hash in _result.result.Keys)
+            {
+                covdata cov = _result.result[hash];
+
+                if(null == cov)
+                    continue;
+
+                string xpath = $"//*[@QueryHash='{cov.query_hash}']";
+                
+                XmlNode node = _doc.SelectSingleNode(xpath);
+
+                if(null == node)
+                    throw new ScripterException($"Invalid path. [{xpath}]");
+
+                add_attribute(node, "creation_time", XmlConvert.ToString(cov.creation_time, XmlDateTimeSerializationMode.Utc));
+                add_attribute(node, "last_execution_time", XmlConvert.ToString(cov.last_execution_time, XmlDateTimeSerializationMode.Utc));
+
+                add_attribute(node, "execution_count", XmlConvert.ToString(cov.execution_count));
+                add_attribute(node, "sql_handle", cov.sql_handle);
+                add_attribute(node, "statement_end_offset", XmlConvert.ToString(cov.statement_end_offset));
+                add_attribute(node, "statement_start_offset", XmlConvert.ToString(cov.statement_start_offset));
+                add_attribute(node, "total_logical_reads", XmlConvert.ToString(cov.total_logical_reads));
+                add_attribute(node, "total_logical_writes", XmlConvert.ToString(cov.total_logical_writes));
+                add_attribute(node, "total_physical_reads", XmlConvert.ToString(cov.total_physical_reads));
+                add_attribute(node, "total_worker_time", XmlConvert.ToString(cov.total_worker_time));
+                //add_attribute(node, "execution_count", XmlConvert.ToString(cov.execution_count));
+
+                
+
+
+
+            }
+
+            _doc.Save(path);
+            
+            
+        }
+        
+        
     }                        
 
 }

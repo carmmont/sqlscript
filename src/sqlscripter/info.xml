@@ -1,0 +1,208 @@
+<ShowPlanXML xmlns="http://schemas.microsoft.com/sqlserver/2004/07/showplan" Version="1.6" Build="14.0.3008.27">
+  <BatchSequence>
+    <Batch>
+      <Statements>
+        <StmtSimple StatementText="exec test_coverage 1" StatementId="1" StatementCompId="1" StatementType="EXECUTE PROC" RetrievedFromCache="false">
+          <StoredProc ProcName="test_coverage">
+            <Statements>
+              <StmtSimple StatementText="-- =============================================&#xD;&#xA;-- Author:		&lt;Author,,Name&gt;&#xD;&#xA;-- Create date: &lt;Create Date,,&gt;&#xD;&#xA;-- Description:	&lt;Description,,&gt;&#xD;&#xA;-- =============================================&#xD;&#xA;CREATE PROCEDURE [dbo].[test_coverage]&#xD;&#xA;	-- Add the parameters for the stored procedure here&#xD;&#xA;	@full int = 0&#xD;&#xA;AS&#xD;&#xA;BEGIN&#xD;&#xA;    /*COMMENT&#xD;&#xA;    *&#xD;&#xA;    *&#xD;&#xA;    *&#xD;&#xA;    */exec GET_ITEMS" StatementId="2" StatementCompId="3" StatementType="EXECUTE PROC" RetrievedFromCache="true">
+                <StoredProc ProcName="GET_ITEMS">
+                  <Statements>
+                    <StmtSimple StatementText="create procedure GET_ITEMS&#xD;&#xA;AS&#xD;&#xA;    SELECT ID, NAME FROM TABLE1" StatementId="3" StatementCompId="12" StatementType="SELECT" RetrievedFromCache="true" StatementSubTreeCost="0.0032831" StatementEstRows="1" SecurityPolicyApplied="false" StatementOptmLevel="TRIVIAL" QueryHash="0xAC4C31F5376FECD1" QueryPlanHash="0xF2CBC26706116DD9" CardinalityEstimationModelVersion="140" sqlscripter:creation_time="2019-01-21T10:36:15.857Z" sqlscripter:last_execution_time="2019-01-21T10:38:00.323Z" sqlscripter:execution_count="4" sqlscripter:sql_handle="0x03000700EFD42242EA9C010165A9000001000000000000000000000000000000000000000000000000000000" sqlscripter:statement_end_offset="124" sqlscripter:statement_start_offset="72" sqlscripter:total_logical_reads="0" sqlscripter:total_logical_writes="0" sqlscripter:total_physical_reads="0" sqlscripter:total_worker_time="89" xmlns:sqlscripter="https://github.com/aseduto/sqlscript">
+                      <StatementSetOptions QUOTED_IDENTIFIER="true" ARITHABORT="false" CONCAT_NULL_YIELDS_NULL="true" ANSI_NULLS="true" ANSI_PADDING="true" ANSI_WARNINGS="true" NUMERIC_ROUNDABORT="false">
+                      </StatementSetOptions>
+                      <QueryPlan CachedPlanSize="16" CompileTime="0" CompileCPU="0" CompileMemory="72">
+                        <MemoryGrantInfo SerialRequiredMemory="0" SerialDesiredMemory="0">
+                        </MemoryGrantInfo>
+                        <OptimizerHardwareDependentProperties EstimatedAvailableMemoryGrant="160921" EstimatedPagesCached="20115" EstimatedAvailableDegreeOfParallelism="2" MaxCompileMemory="2269240">
+                        </OptimizerHardwareDependentProperties>
+                        <TraceFlags IsCompileTime="1">
+                          <TraceFlag Value="835" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="3105" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="5504" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="5521" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="6529" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="8020" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="8415" Scope="Global">
+                          </TraceFlag>
+                        </TraceFlags>
+                        <RelOp NodeId="0" PhysicalOp="Table Scan" LogicalOp="Table Scan" EstimateRows="1" EstimatedRowsRead="1" EstimateIO="0.0032035" EstimateCPU="7.96e-005" AvgRowSize="270" EstimatedTotalSubtreeCost="0.0032831" TableCardinality="0" Parallel="0" EstimateRebinds="0" EstimateRewinds="0" EstimatedExecutionMode="Row">
+                          <OutputList>
+                            <ColumnReference Database="[TESTDB]" Schema="[dbo]" Table="[TABLE1]" Column="ID">
+                            </ColumnReference>
+                            <ColumnReference Database="[TESTDB]" Schema="[dbo]" Table="[TABLE1]" Column="NAME">
+                            </ColumnReference>
+                          </OutputList>
+                          <TableScan Ordered="0" ForcedIndex="0" ForceScan="0" NoExpandHint="0" Storage="RowStore">
+                            <DefinedValues>
+                              <DefinedValue>
+                                <ColumnReference Database="[TESTDB]" Schema="[dbo]" Table="[TABLE1]" Column="ID">
+                                </ColumnReference>
+                              </DefinedValue>
+                              <DefinedValue>
+                                <ColumnReference Database="[TESTDB]" Schema="[dbo]" Table="[TABLE1]" Column="NAME">
+                                </ColumnReference>
+                              </DefinedValue>
+                            </DefinedValues>
+                            <Object Database="[TESTDB]" Schema="[dbo]" Table="[TABLE1]" IndexKind="Heap" Storage="RowStore">
+                            </Object>
+                          </TableScan>
+                        </RelOp>
+                      </QueryPlan>
+                    </StmtSimple>
+                  </Statements>
+                </StoredProc>
+              </StmtSimple>
+              <StmtCond StatementText="&#xD;&#xA;    if @full &gt; 0" StatementId="4" StatementCompId="4" StatementType="COND" RetrievedFromCache="true">
+                <Condition>
+                </Condition>
+                <Then>
+                  <Statements>
+                    <StmtSimple StatementText="&#xD;&#xA;    BEGIN&#xD;&#xA;        select * from FFF()" StatementId="5" 
+                    StatementCompId="5" StatementType="SELECT" RetrievedFromCache="true" 
+                    StatementSubTreeCost="1.157e-006" StatementEstRows="1" 
+                    SecurityPolicyApplied="false" StatementOptmLevel="TRIVIAL" QueryHash="0x5B9EFAC0E976CA06" 
+                    QueryPlanHash="0xD3F9F22C1BAD3015" CardinalityEstimationModelVersion="140" 
+                    sqlscripter:creation_time="2019-01-21T10:36:15.857Z" 
+                    sqlscripter:last_execution_time="2019-01-21T10:38:00.323Z" 
+                    sqlscripter:execution_count="3" 
+                    sqlscripter:sql_handle="0x0300070045AEDB47B92F1A01A8A9000001000000000000000000000000000000000000000000000000000000" 
+                    sqlscripter:statement_end_offset="856" 
+                    sqlscripter:statement_start_offset="820" 
+                    sqlscripter:total_logical_reads="0" 
+                    sqlscripter:total_logical_writes="0" 
+                    sqlscripter:total_physical_reads="0" 
+                    sqlscripter:total_worker_time="20" xmlns:sqlscripter="https://github.com/aseduto/sqlscript">
+                      <StatementSetOptions QUOTED_IDENTIFIER="true" ARITHABORT="false" CONCAT_NULL_YIELDS_NULL="true" ANSI_NULLS="true" ANSI_PADDING="true" ANSI_WARNINGS="true" NUMERIC_ROUNDABORT="false">
+                      </StatementSetOptions>
+                      <QueryPlan CachedPlanSize="8" CompileTime="0" CompileCPU="0" CompileMemory="112">
+                        <MemoryGrantInfo SerialRequiredMemory="0" SerialDesiredMemory="0">
+                        </MemoryGrantInfo>
+                        <OptimizerHardwareDependentProperties EstimatedAvailableMemoryGrant="160921" EstimatedPagesCached="20115" EstimatedAvailableDegreeOfParallelism="2" MaxCompileMemory="2269240">
+                        </OptimizerHardwareDependentProperties>
+                        <TraceFlags IsCompileTime="1">
+                          <TraceFlag Value="835" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="3105" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="5504" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="5521" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="6529" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="8020" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="8415" Scope="Global">
+                          </TraceFlag>
+                        </TraceFlags>
+                        <RelOp NodeId="0" PhysicalOp="Constant Scan" LogicalOp="Constant Scan" EstimateRows="1" EstimateIO="0" EstimateCPU="1.157e-006" AvgRowSize="11" EstimatedTotalSubtreeCost="1.157e-006" Parallel="0" EstimateRebinds="0" EstimateRewinds="0" EstimatedExecutionMode="Row">
+                          <OutputList>
+                            <ColumnReference Column="Expr1000">
+                            </ColumnReference>
+                          </OutputList>
+                          <ConstantScan>
+                            <Values>
+                              <Row>
+                                <ScalarOperator ScalarString="(0)">
+                                  <Const ConstValue="(0)">
+                                  </Const>
+                                </ScalarOperator>
+                              </Row>
+                            </Values>
+                          </ConstantScan>
+                        </RelOp>
+                      </QueryPlan>
+                    </StmtSimple>
+                  </Statements>
+                </Then>
+              </StmtCond>
+              <StmtSimple StatementText="&#xD;&#xA;    END&#xD;&#xA;&#xD;&#xA;    PRINT @full&#xD;&#xA;&#xD;&#xA;    " StatementId="6" StatementCompId="7" StatementType="PRINT" RetrievedFromCache="true">
+              </StmtSimple>
+              <StmtCond StatementText="if @full &gt; 1" StatementId="7" StatementCompId="8" StatementType="COND" RetrievedFromCache="true">
+                <Condition>
+                </Condition>
+                <Then>
+                  <Statements>
+                    <StmtSimple StatementText="&#xD;&#xA;    BEGIN&#xD;&#xA;    -------------------------&#xD;&#xA;        SELECT dbo.num_echo(@full)" StatementId="8" StatementCompId="9" StatementType="SELECT" RetrievedFromCache="true" StatementSubTreeCost="1.257e-006" StatementEstRows="1" SecurityPolicyApplied="false" StatementOptmLevel="TRIVIAL" QueryHash="0x3261D298759E70F4" QueryPlanHash="0xE4B4494F36E0E492" CardinalityEstimationModelVersion="140" sqlscripter:creation_time="2019-01-21T10:36:15.857Z" sqlscripter:last_execution_time="2019-01-21T10:37:32.11Z" sqlscripter:execution_count="1" sqlscripter:sql_handle="0x0300070045AEDB47B92F1A01A8A9000001000000000000000000000000000000000000000000000000000000" sqlscripter:statement_end_offset="1108" sqlscripter:statement_start_offset="1058" sqlscripter:total_logical_reads="2" sqlscripter:total_logical_writes="0" sqlscripter:total_physical_reads="0" sqlscripter:total_worker_time="128" xmlns:sqlscripter="https://github.com/aseduto/sqlscript">
+                      <StatementSetOptions QUOTED_IDENTIFIER="true" ARITHABORT="false" CONCAT_NULL_YIELDS_NULL="true" ANSI_NULLS="true" ANSI_PADDING="true" ANSI_WARNINGS="true" NUMERIC_ROUNDABORT="false">
+                      </StatementSetOptions>
+                      <QueryPlan NonParallelPlanReason="CouldNotGenerateValidParallelPlan" CachedPlanSize="16" CompileTime="0" CompileCPU="0" CompileMemory="120">
+                        <MemoryGrantInfo SerialRequiredMemory="0" SerialDesiredMemory="0">
+                        </MemoryGrantInfo>
+                        <OptimizerHardwareDependentProperties EstimatedAvailableMemoryGrant="160921" EstimatedPagesCached="20115" EstimatedAvailableDegreeOfParallelism="2" MaxCompileMemory="2269240">
+                        </OptimizerHardwareDependentProperties>
+                        <TraceFlags IsCompileTime="1">
+                          <TraceFlag Value="835" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="3105" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="5504" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="5521" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="6529" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="8020" Scope="Global">
+                          </TraceFlag>
+                          <TraceFlag Value="8415" Scope="Global">
+                          </TraceFlag>
+                        </TraceFlags>
+                        <RelOp NodeId="0" PhysicalOp="Compute Scalar" LogicalOp="Compute Scalar" EstimateRows="1" EstimateIO="0" EstimateCPU="1e-007" AvgRowSize="11" EstimatedTotalSubtreeCost="1.257e-006" Parallel="0" EstimateRebinds="0" EstimateRewinds="0" EstimatedExecutionMode="Row">
+                          <OutputList>
+                            <ColumnReference Column="Expr1000">
+                            </ColumnReference>
+                          </OutputList>
+                          <ComputeScalar>
+                            <DefinedValues>
+                              <DefinedValue>
+                                <ColumnReference Column="Expr1000">
+                                </ColumnReference>
+                                <ScalarOperator ScalarString="[TESTDB].[dbo].[num_echo]([@full])">
+                                  <UserDefinedFunction FunctionName="[TESTDB].[dbo].[num_echo]">
+                                    <ScalarOperator>
+                                      <Identifier>
+                                        <ColumnReference Column="@full">
+                                        </ColumnReference>
+                                      </Identifier>
+                                    </ScalarOperator>
+                                  </UserDefinedFunction>
+                                </ScalarOperator>
+                              </DefinedValue>
+                            </DefinedValues>
+                            <RelOp NodeId="1" PhysicalOp="Constant Scan" LogicalOp="Constant Scan" EstimateRows="1" EstimateIO="0" EstimateCPU="1.157e-006" AvgRowSize="9" EstimatedTotalSubtreeCost="1.157e-006" Parallel="0" EstimateRebinds="0" EstimateRewinds="0" EstimatedExecutionMode="Row">
+                              <OutputList>
+                              </OutputList>
+                              <ConstantScan>
+                              </ConstantScan>
+                            </RelOp>
+                          </ComputeScalar>
+                        </RelOp>
+                        <ParameterList>
+                          <ColumnReference Column="@full" ParameterDataType="int" ParameterCompiledValue="(1)">
+                          </ColumnReference>
+                        </ParameterList>
+                      </QueryPlan>
+                      <UDF ProcName="[TESTDB].[dbo].[num_echo]">
+                        <Statements>
+                          <StmtSimple StatementText="-- =============================================&#xD;&#xA;-- Author:		&lt;Author,,Name&gt;&#xD;&#xA;-- Create date: &lt;Create Date, ,&gt;&#xD;&#xA;-- Description:	&lt;Description, ,&gt;&#xD;&#xA;-- =============================================&#xD;&#xA;CREATE FUNCTION num_echo &#xD;&#xA;(&#xD;&#xA;	@n int&#xD;&#xA;)&#xD;&#xA;RETURNS int&#xD;&#xA;AS&#xD;&#xA;BEGIN&#xD;&#xA;	RETURN @N" StatementId="9" StatementCompId="3" StatementType="RETURN" RetrievedFromCache="true">
+                          </StmtSimple>
+                        </Statements>
+                      </UDF>
+                    </StmtSimple>
+                  </Statements>
+                </Then>
+              </StmtCond>
+            </Statements>
+          </StoredProc>
+        </StmtSimple>
+      </Statements>
+    </Batch>
+  </BatchSequence>
+</ShowPlanXML>

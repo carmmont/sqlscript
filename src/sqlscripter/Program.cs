@@ -587,7 +587,7 @@ namespace sqlscripter
                  to count only what you are running and not previous runs.
                  Do Not use in a production system.", CommandOptionType.NoValue);
                 var no_exec = command.Option("-n | --no-exec", @"Do not Run the procedure.", CommandOptionType.NoValue);
-
+                var save = command.Option("--save", @"save a test result with performance and coverage", CommandOptionType.SingleValue);
                 command.OnExecute(() =>
                 {
                 
@@ -600,6 +600,13 @@ namespace sqlscripter
                     Server server = new Server(serverConnection);
 
                     Database db = server.Databases[sqldb.Value()];
+                    if(null == db)
+                        throw new ScripterException("Invalid database");
+
+                    string save_path = null;
+
+                    if(save.HasValue())
+                        save_path = save.Value();
 
                     if(free_proccache.HasValue())
                     {
@@ -610,7 +617,7 @@ namespace sqlscripter
                     {                        
                         string sql = statement;
 
-                        handle_coverage(db, sql, !no_exec.HasValue()); 
+                        handle_coverage(db, sql, !no_exec.HasValue(), false, save_path); 
                     }
 
                     foreach (string indexfile in indexfiles.Values)
@@ -618,7 +625,7 @@ namespace sqlscripter
                         string[] lines = System.IO.File.ReadAllLines(indexfile);
                         string sql = string.Join("\r\n", lines);
 
-                        handle_coverage(db, sql, !no_exec.HasValue());
+                        handle_coverage(db, sql, !no_exec.HasValue(), false, save_path);
                         
                     }
 
@@ -665,7 +672,7 @@ namespace sqlscripter
             }
         }
 
-        private static void handle_coverage(Database db, string sql, bool exec, bool detail = false)
+        private static void handle_coverage(Database db, string sql, bool exec, bool detail = false, string save_path = null)
         {
             Coverage coverage = new Coverage();
 
@@ -675,7 +682,7 @@ namespace sqlscripter
 
             double p = (res.executed / res.total) * 100;
 
-            System.Console.WriteLine("Coverage {0}% executed {1} of {2}", p, res.executed, res.total);
+            System.Console.WriteLine("Coverage {0}% executed {1} of {2}", p.ToString("0.00"), res.executed, res.total);
             
             if(detail)
             {
@@ -687,7 +694,10 @@ namespace sqlscripter
                 }
             }
 
-            
+            if(null != save_path)
+            {
+                coverage.Save(save_path);
+            }           
             
         }
 
