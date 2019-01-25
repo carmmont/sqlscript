@@ -192,8 +192,9 @@ test_script:
     - dotnet ./minicover/src/MiniCover/out/dotnet-minicover.dll instrument --workdir ./ --assemblies src/**/out/**/*.dll --sources src/**/*.cs
     - dotnet ./src/sqlscripter/out/sqlscripter.dll --help
     - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -f -s "exec test_coverage 0"
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -f -s "exec test_coverage 1"
-    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -n -s "exec test_coverage 0" --save info.xml --detail
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -f -s "exec test_coverage 1" --detail
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -n -s "exec test_coverage 0" --save info.xml
+    - pwsh: gc info.xml
     - dotnet ./src/sqlscripter/out/sqlscripter.dll coverage -S %SQLINSTANCE% -U sa -P "Password12!" -d XXXXXX -n -s "exec test_coverage 0" & exit 0
     - dotnet ./src/sqlscripter/out/sqlscripter.dll info -S %SQLINSTANCE% -U sa -P "Password12!" -d MASTER 
     - dotnet ./src/sqlscripter/out/sqlscripter.dll info -S %SQLINSTANCE% & exit 0
