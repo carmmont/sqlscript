@@ -10,98 +10,9 @@ using System.Data;
 
 namespace sqlscripter
 {
-    class obj_info
-    {
-        public string type;
-        public string name;
-        public string schema;
-        public bool is_type;
-    }
+    
     class Program
     {
-
-        private static bool disable_console = false;
-        private static bool disable_console_error = false;
-
-        private static void drawTextProgressBar(int progress, int total, string info = "")
-        {
-            string output = progress.ToString() + " of " + total.ToString() + " " + info;
-
-            int width = 80;
-
-            if (output.Length > width)
-            {
-                output = output.Substring(0, width);
-            }
-
-            if (output.Length < width)
-            {
-                output = output.PadRight(width);
-            }
-
-            if (!disable_console)
-            {
-                if (!disable_console_error)
-                {
-
-                    ConsoleColor original = Console.BackgroundColor;
-
-                    try
-                    {
-                        //draw empty progress bar
-                        Console.CursorLeft = 0;
-                        Console.Write("["); //start
-                        Console.CursorLeft = 32;
-                        Console.Write("]"); //end
-                        Console.CursorLeft = 1;
-                        float onechunk = 31.0f / total;
-
-                        //draw filled part
-                        int position = 1;
-                        for (int i = 0; i < onechunk * progress; i++)
-                        {
-                            Console.BackgroundColor = ConsoleColor.Gray;
-                            Console.CursorLeft = position++;
-                            Console.Write(" ");
-                        }
-
-                        //draw unfilled part
-                        for (int i = position; i <= 31; i++)
-                        {
-                            Console.BackgroundColor = ConsoleColor.Green;
-                            Console.CursorLeft = position++;
-                            Console.Write(" ");
-                        }
-
-                        //draw totals
-                        Console.CursorLeft = 35;
-                        Console.BackgroundColor = original;
-
-
-
-                        Console.Write(output); //blanks at the end remove any excess
-                                               //Console.Write(progress.ToString() + " of " + total.ToString() + "    "); //blanks at the end remove any excess
-                        if (progress >= total)
-                            Console.WriteLine();
-
-
-                        return;
-
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.Error.WriteLine("CONSOLE PROGRESS NOT SUPPORTED: " + ex.ToString());
-                        disable_console_error = true;
-                    }
-
-                }
-                
-                System.Console.WriteLine(output);
-
-            }
-
-        }
-
         static void add_urn_from_query(Database db, string obj
             , Func<string, string, string> geturn
             , UrnCollection urns
@@ -144,7 +55,7 @@ end
             foreach (DataRow r in ds.Tables[0].Rows)
             {
                 if(progress)
-                    drawTextProgressBar(++idx, count);
+                    util.drawTextProgressBar(++idx, count);
                 
                 bool add = true;
 
@@ -171,7 +82,7 @@ end
             foreach (SqlSmoObject ob in coll)
             {
                 if(progress)
-                    drawTextProgressBar(++idx, count, NormalizeUrn( ob.Urn));
+                    util.drawTextProgressBar(++idx, count, NormalizeUrn( ob.Urn));
                     
                 if (ob is StoredProcedure)
                 {
@@ -206,43 +117,7 @@ end
             return $"{m.Groups[2].Value}:[{m.Groups[4].Value}].[{m.Groups[3].Value}]";
         }
 
-        static obj_info ObjectInfo(string obj)
-        {
-            obj_info r = null;
-
-            if (string.IsNullOrEmpty(obj))
-            {
-                r = new obj_info() { type = "null" };
-            }
-
-            if (obj.StartsWith("#"))
-            {
-                r = new obj_info() { type = "comment" };
-            }
-            
-            if(null == r)
-            {
-                string rx = @"([^:]+):\[([^\]]*)\]\.\[([^\]]+)\]";
-
-                if (!System.Text.RegularExpressions.Regex.IsMatch(obj, rx))
-                {
-                    throw new ScripterException($"Invalid Object Name used: {obj} does not match {rx}");
-                }
-
-
-                var m = System.Text.RegularExpressions.Regex.Match(obj, rx);
-
-                r = new obj_info()
-                {
-                    type = m.Groups[1].Value
-                    , name = m.Groups[3].Value
-                    , schema = m.Groups[2].Value
-                    , is_type = true
-                };
-            }
-
-            return r;
-        }
+        
 
         static bool validate_connection(CommandOption sqlserver , 
             CommandOption sqldb, CommandOption sqluser, CommandOption  sqlpsw  )
@@ -333,7 +208,7 @@ end
 
                     DateTime pinned = DateTime.UtcNow;
 
-                    disable_console = nouseprogress.HasValue();
+                    util.disable_console = nouseprogress.HasValue();
 
                     ServerConnection serverConnection = get_server_connection(sqlserver, sqldb, sqluser, sqlpsw);
                     if(null == serverConnection)
@@ -500,12 +375,12 @@ end
                 var output = command.Option("-o | --output", "Scripts Directory Output", CommandOptionType.SingleValue);
                 var file = command.Option("-f | -i | --file", "Input File", CommandOptionType.SingleValue);
                 var version = command.Option("--sql-version", "Sql Version Generation Target", CommandOptionType.SingleValue); 
-
+                var file_version = command.Option("--file-version", "Enable object version support", CommandOptionType.NoValue);
 
                 command.OnExecute(() =>
                 {
                 
-                    disable_console = nouseprogress.HasValue();
+                    util.disable_console = nouseprogress.HasValue();
 
                     ServerConnection serverConnection = get_server_connection(sqlserver, sqldb, sqluser, sqlpsw);
                     if(null == serverConnection)
@@ -531,7 +406,10 @@ end
                        sql_version = (SqlServerVersion) Enum.Parse(typeof(SqlServerVersion), version.Value());
                    }
                     
-                   Script(objs, server.Databases[sqldb.Value()], outputdir, (!nouseprogress.HasValue()), sql_version);
+                   scripter.Script(objs, server.Databases[sqldb.Value()]
+                   , outputdir, (!nouseprogress.HasValue())
+                   , sql_version
+                   , file_version.HasValue());
 
                    return 0;
                     
@@ -583,15 +461,15 @@ end
                             
                             foreach (string tt in types)
                             {
-                                obj_info oi = ObjectInfo(tt);
+                                obj_info oi = util.ObjectInfo(tt);
 
-                                drawTextProgressBar(++types_count, types.Length, $" ({tt}) ");
+                                util.drawTextProgressBar(++types_count, types.Length, $" ({tt}) ");
 
                                 if (oi.is_type)
                                 {
                                     if (!excludetyes.Values.Contains(oi.type))
                                     {
-                                        string source = FilePath(basep, oi, false);
+                                        string source = util.FilePath(basep, oi, false);
                                         string content = System.IO.File.ReadAllText(source);
 
                                         if (null != outputfile)
@@ -627,7 +505,7 @@ end
                 command.OnExecute(() =>
                 {
                 
-                    disable_console = nouseprogress.HasValue();
+                    util.disable_console = nouseprogress.HasValue();
 
                     ServerConnection serverConnection = get_server_connection(sqlserver, sqldb, sqluser, sqlpsw);
                     if(null == serverConnection)
@@ -758,7 +636,7 @@ end
             else
             {
                 string str_info = NormalizeUrn(urn);
-                obj_info info = ObjectInfo(str_info);
+                obj_info info = util.ObjectInfo(str_info);
                 output_line = str_info;
 
                 if("UnresolvedEntity" == info.type)
@@ -813,218 +691,17 @@ end
         }
         */
 
-        private static void Script(string[] target, Database db
-        , string output, bool progress, SqlServerVersion sql_version)//.Version100)
-        {
-            if(null == db)
-                throw new ScripterException("Invalid Database");
+        
 
-            Scripter scripter = new Scripter(db.Parent);
-                    ScriptingOptions op = new ScriptingOptions
-                    {
-                        AllowSystemObjects = false
-                         ,
-                        WithDependencies = false
-                        , ClusteredIndexes = true
-                        , Indexes = true
-                        , DriAllConstraints = true
+        
 
-                        //, 
+        
 
-                        //, DriAll = true
-                        , TargetServerVersion = sql_version
-                    };
+        
 
-                    System.Console.WriteLine("Target Version {0}", op.TargetServerVersion);
+        
 
-                    scripter.Options = op;
-
-            Script(target, db, scripter, output,progress);
-            
-        }
-
-        private static void check_oi(SqlSmoObject obj, obj_info oi)
-        {
-            if(null == obj)
-                throw new ScripterException(
-                    string.Format("cannot find {0}: {2} {1}", oi.type, oi.name, oi.schema)
-                );
-        }
-        private static void Script(string[] target, Database db
-        , Scripter scripter, string output, bool progress)
-        {
-            SqlSmoObject[] objs = new SqlSmoObject[1];
-          
-            int count = target.Length;
-            int jdx = 0;
-            
-            
-            foreach (string obname in target)
-            {
-                obj_info oi = ObjectInfo(obname);
-
-                scripter.Options.IncludeIfNotExists = true;
-                scripter.Options.ScriptForCreateDrop = false;
-                
-                if ("null" == oi.type || "comment" == oi.type)
-                {
-                    jdx++;
-                    continue;
-                }
-
-                string file = null;
-
-                if (null != output)
-                {
-                    file = FilePath(output, oi);
-               
-                    if (System.IO.File.Exists(file))
-                        System.IO.File.Delete(file);
-                }
-
-
-                if ("Table" == oi.type)
-                {
-                    scripter.Options.DriDefaults = true;
-                    objs[0] = db.Tables[oi.name, oi.schema];
-                    check_oi(objs[0], oi);
-                }
-
-                if ("StoredProcedure" == oi.type)
-                {
-                    objs[0] = db.StoredProcedures[oi.name, oi.schema];
-                    check_oi(objs[0], oi);                    
-                    ScriptDrop(scripter, objs, file);
-                }
-
-                if ("View" == oi.type)
-                {
-                    objs[0] = db.Views[oi.name, oi.schema];
-                    check_oi(objs[0], oi);
-                    ScriptDrop(scripter, objs, file);
-                }
-
-                if ("Synonym" == oi.type)
-                {
-                    objs[0] = db.Synonyms[oi.name, oi.schema];
-                    check_oi(objs[0], oi);
-                    ScriptDrop(scripter, objs, file);
-
-                }
-
-                if ("UserDefinedFunction" == oi.type)
-                {
-                    objs[0] = db.UserDefinedFunctions[oi.name, oi.schema];
-                    check_oi(objs[0], oi);
-                    ScriptDrop(scripter, objs, file);
-                    
-                }
-
-                if ("UserDefinedType" == oi.type)
-                {
-                    objs[0] = db.UserDefinedTypes[oi.name, oi.schema];
-                    check_oi(objs[0], oi);
-                }
-
-                if ("Schema" == oi.type)
-                {
-                    objs[0] = db.Schemas[oi.name];
-                    check_oi(objs[0], oi);
-                }
-                                
-                if(null == objs[0])
-                {
-                    throw new ScripterException(string.Format("Invalid type: {0} {1}", oi.type, obname));
-                }
-                //DependencyTree tr = scripter.DiscoverDependencies(objs, true);
-                //DependencyCollection dc = scripter.WalkDependencies(tr)
-
-                if (null != output && progress)
-                {                    
-                    drawTextProgressBar(++jdx, count, obname);
-                }
-
-                Script(scripter, objs, file);
-
-            }
-
-        }
-
-        private static void ScriptDrop(Scripter scripter, SqlSmoObject[] objs, string file)
-        {
-            scripter.Options.ScriptForCreateDrop = true;
-            scripter.Options.ScriptDrops = true;
-
-                    Script(scripter, objs, file);
-                    
-            scripter.Options.IncludeIfNotExists = false;
-            scripter.Options.ScriptDrops = false;
-        }
-
-        private static void Script(Scripter scripter, SqlSmoObject[] objs, string file)
-        {
-            StringCollection sqls = scripter.Script(objs);
-            
-            for (int idx = 0; idx < sqls.Count; idx++)
-            {
-                string sql = sqls[idx];
-
-                if(sql == "SET ANSI_NULLS ON" 
-                    || sql == "SET QUOTED_IDENTIFIER ON"
-                    )
-                    continue;
-
-                string defaultrx = @"IF NOT EXISTS \(SELECT \* FROM sys.objects WHERE object_id = OBJECT_ID\(N'\[([^\]]+)\]\.\[([^\]]+)\]'\) AND type = 'D'\)";
-
-                if (System.Text.RegularExpressions.Regex.IsMatch(sql, defaultrx))
-                {
-                    sql = fixdefault(sql, defaultrx);
-                }
-
-                if (file == null)
-                {
-                    Console.WriteLine("GO");
-                    //Console.WriteLine($"------- START {prefix} {idx} [{oi.schema}].[{oi.name}]-------");
-                    Console.WriteLine(sql);
-                    //Console.WriteLine($"------- END {prefix} {idx} [{oi.schema}].[{oi.name}] -------");
-                }
-                else
-                {
-                    System.IO.File.AppendAllText(file, Environment.NewLine + "GO" + Environment.NewLine);
-                    System.IO.File.AppendAllText(file, sql);
-                }
-            }
-
-            
-        }
-
-        private static string fixdefault(string sql, string defaultrx)
-        {
-            var m = System.Text.RegularExpressions.Regex.Match(sql, defaultrx);
-
-            string defaultsql = $"ADD CONSTRAINT {m.Groups[2].Value} DEFAULT";
-
-            return sql.Replace("ADD  DEFAULT", defaultsql);
-
-        }
-
-        private static string FilePath(string output, obj_info oi, bool dooutput = true)
-        {
-            
-            string prefix = oi.type + "s";
-
-            string dir = System.IO.Path.GetFullPath(
-                                        System.IO.Path.Combine(output, prefix)
-                                        );
-
-            if (dooutput)
-                System.IO.Directory.CreateDirectory(dir);
-            
-
-            return System.IO.Path.Combine(dir, $"{oi.schema}.{oi.name}.sql");
-            
-            //return file;
-        }
+        
 
         
     }
