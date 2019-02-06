@@ -22,6 +22,10 @@ CREATE TABLE [dbo].[IDX_HISTORY](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 END
 GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'IDX_HISTORY';
+GO
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'IDX_HISTORY';
+GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[TABLE1]') AND type in (N'U'))
 BEGIN
 CREATE TABLE [dbo].[TABLE1](
@@ -30,11 +34,58 @@ CREATE TABLE [dbo].[TABLE1](
 ) ON [PRIMARY]
 END
 GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'TABLE1';
+GO
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'TABLE1';
+GO
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Gathering].[Exec_Query_Plans_1]') AND type in (N'U'))
+BEGIN
+CREATE TABLE [Gathering].[Exec_Query_Plans_1](
+	[Id] [bigint] IDENTITY(1,1) NOT NULL,
+	[plan_handle] [varbinary](64) NOT NULL,
+	[plan_generation_num] [bigint] NOT NULL,
+	[statement_start_offset] [int] NOT NULL,
+	[statement_end_offset] [int] NOT NULL,
+	[dbid] [smallint] NULL,
+	[objectId] [int] NULL,
+	[query_plan] [nvarchar](max) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+	[creation_time] [datetime] NULL,
+	[correlation_id] [uniqueidentifier] NOT NULL,
+	[timestamp] [datetime] NOT NULL,
+ CONSTRAINT [PK_Exec_Query_Plans_11] PRIMARY KEY NONCLUSTERED 
+(
+	[plan_handle] ASC,
+	[plan_generation_num] ASC,
+	[statement_start_offset] ASC,
+	[statement_end_offset] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+END
+GO
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[Gathering].[Exec_Query_Plans_1]') AND name = N'IX_Exec_Query_Plans_11')
+CREATE UNIQUE CLUSTERED INDEX [IX_Exec_Query_Plans_11] ON [Gathering].[Exec_Query_Plans_1]
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+
+GO
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE object_id = OBJECT_ID(N'[Gathering].[Exec_Query_Plans_1]') AND name = N'IX_Exec_Query_Plans_1')
+CREATE NONCLUSTERED INDEX [IX_Exec_Query_Plans_1] ON [Gathering].[Exec_Query_Plans_1]
+(
+	[plan_handle] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Gathering].[DF__Exec_Quer__times__37A5467C]') AND type = 'D')
 BEGIN
 ALTER TABLE [Gathering].[Exec_Query_Plans_1] ADD CONSTRAINT DF__Exec_Quer__times__37A5467C DEFAULT (getdate()) FOR [timestamp]
 END
 
+GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'Gathering', @level1type=N'TABLE',@level1name=N'Exec_Query_Plans_1';
+GO
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'Gathering', @level1type=N'TABLE',@level1name=N'Exec_Query_Plans_1';
 GO
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[refresh]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[refresh]
@@ -47,6 +98,7 @@ GO
 CREATE PROCEDURE [dbo].[refresh]
 AS
 BEGIN
+    --- MMM 6
 	-- SET NOCOUNT ON added to prevent extra result sets from
 	-- interfering with SELECT statements.
 	SET NOCOUNT ON;
@@ -56,6 +108,11 @@ BEGIN
     exec dbmaint.Gathering.collect_all
 END
 
+
+GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.6.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'refresh';
+GO
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'refresh';
 GO
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[DBA_REORGANIZE_INDEXES]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[DBA_REORGANIZE_INDEXES]
@@ -270,6 +327,11 @@ END
 
 
 
+
+GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.4.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'DBA_REORGANIZE_INDEXES';
+GO
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'DBA_REORGANIZE_INDEXES';
 GO
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[GET_ITEMS]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[GET_ITEMS]
@@ -281,6 +343,11 @@ AS
 
 
 
+
+GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.4.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'GET_ITEMS';
+GO
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'GET_ITEMS';
 GO
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[NEW_ITEM]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[NEW_ITEM]
@@ -291,6 +358,11 @@ AS
 
 
 
+
+GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.4.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'NEW_ITEM';
+GO
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'NEW_ITEM';
 GO
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[num_echo]') AND type in (N'FN', N'IF', N'TF', N'FS', N'FT'))
 DROP FUNCTION [dbo].[num_echo]
@@ -311,6 +383,11 @@ BEGIN
 
 END
 
+
+GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.1.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'FUNCTION',@level1name=N'num_echo';
+GO
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'FUNCTION',@level1name=N'num_echo';
 GO
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FFF]') AND type in (N'FN', N'IF', N'TF', N'FS', N'FT'))
 DROP FUNCTION [dbo].[FFF]
@@ -327,6 +404,11 @@ RETURN
 	SELECT 0 AS S
 )
 
+
+GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.1.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'FUNCTION',@level1name=N'FFF';
+GO
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'FUNCTION',@level1name=N'FFF';
 GO
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[test_coverage]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[test_coverage]
@@ -360,6 +442,11 @@ BEGIN
     END
 END
 
+
+GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.4.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'test_coverage';
+GO
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'test_coverage';
 GO
 IF  EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[view_1]'))
 DROP VIEW [dbo].[view_1]
@@ -369,9 +456,18 @@ as
 SELECT        TABLE1.*
 FROM            TABLE1
 
+
+GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.1.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'VIEW',@level1name=N'view_1';
+GO
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'VIEW',@level1name=N'view_1';
 GO
 IF  EXISTS (SELECT * FROM sys.synonyms WHERE name = N'TABLE2' AND schema_id = SCHEMA_ID(N'dbo'))
 DROP SYNONYM [dbo].[TABLE2]
 GO
 CREATE SYNONYM [dbo].[TABLE2] FOR [TESTDB].[dbo].[TABLE1]
+GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'SYNONYM',@level1name=N'TABLE2';
+GO
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'SYNONYM',@level1name=N'TABLE2';
 GO

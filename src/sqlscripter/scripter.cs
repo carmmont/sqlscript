@@ -9,9 +9,8 @@ namespace sqlscripter{
 class scripter {
 
     private static bool _do_version = false;
-    private static string EXTENDED_PROPERTY_TEMPLATE = @"EXEC sys.sp_addextendedproperty @name=N'$NAME', @value=N'$VALUE' , @level0type=N'SCHEMA',@level0name=N'$SCHEMA', @level1type=N'$TYPE',@level1name=N'$TARGET';
-    GO
-    ";
+    private static string EXTENDED_PROPERTY_TEMPLATE = @"EXEC sys.sp_addextendedproperty @name=N'$NAME', @value=N'$VALUE' , @level0type=N'SCHEMA',@level0name=N'$SCHEMA', @level1type=N'$TYPE',@level1name=N'$TARGET';" + Environment.NewLine + "GO" + Environment.NewLine;
+  
     private static string FILE_VERSION = "FILE VERSION";
     private static string DATABASE_VERSION = "DATABASE VERSION";
     private static string fixdefault(string sql, string defaultrx)
@@ -147,53 +146,60 @@ class scripter {
             sql += Environment.NewLine + "GO" + Environment.NewLine;
 
             sql_return = sql_return + sql;
+            prefix = "";
+        }
 
-            if(null != version)
-            {
-                if(!is_version_valid(version))
-                    throw new ScripterException("invalid version " + version);
+        string baseline = "----";
+      
+        if(null != version)
+        {
+            if(!is_version_valid(version))
+                throw new ScripterException("invalid version " + version);
 
-                if(null == oi)
-                    throw new ScripterException("version must specify oi");
+            if(null == oi)
+                throw new ScripterException("version must specify oi");
 
-                if(file != null)
-                {                    
-                    string baseline = "----";
-                    if(System.IO.File.Exists(file))
-                    {
-                        baseline = System.IO.File.ReadAllText(file);
-                        baseline = clean_up_version(baseline);
-                    }
-
-                    if(baseline != sql)
-                    {
-                        string[ ] semver = version.Split(".");
-                        semver[2] = (Int16.Parse(semver[2]) + 1).ToString();
-
-                        version = $"{semver[0]}.{semver[1]}.{semver[2]}.0";
-                    }
-                }
-
-                string type = extended_type(oi);
-                if(null != type)
-                {
-                    sql += compile_extended_template(FILE_VERSION, version, oi.schema, type , oi.name);
-                    sql += compile_extended_template(DATABASE_VERSION, "0.0.0.0", oi.schema, type, oi.name);
-                }
-            }
-            
-
-            if (file != null)
-            {
+            if(file != null)
+            {                    
+                
                 if(System.IO.File.Exists(file))
-                {                       
-                   System.IO.File.Delete(file);
+                {
+                    baseline = System.IO.File.ReadAllText(file);
                 }
 
-                //System.IO.File.AppendAllText(file, Environment.NewLine + "GO" + Environment.NewLine);
-                System.IO.File.AppendAllText(file, sql);
+                string baseline_clean = clean_up_version(baseline);
+
+                if(baseline_clean != sql_return)
+                {
+                    string[ ] semver = version.Split(".");
+                    semver[2] = (Int16.Parse(semver[2]) + 1).ToString();
+
+                    version = $"{semver[0]}.{semver[1]}.{semver[2]}.0";
+                }
+                
+            }
+
+            string type = extended_type(oi);
+            if(null != type)
+            {
+                sql_return += compile_extended_template(FILE_VERSION, version, oi.schema, type , oi.name);
+                sql_return += compile_extended_template(DATABASE_VERSION, "0.0.0.0", oi.schema, type, oi.name);
             }
         }
+        
+
+        if (file != null && baseline != sql_return)
+        {
+            if(System.IO.File.Exists(file))
+            {                       
+                System.IO.File.Delete(file);
+            }
+
+            //System.IO.File.AppendAllText(file, Environment.NewLine + "GO" + Environment.NewLine);
+            //System.IO.File.AppendAllText(file, sql);
+            System.IO.File.WriteAllText(file, sql_return);
+        }
+        
 
         return sql_return;
 
@@ -290,7 +296,7 @@ class scripter {
                     string sql_file = System.IO.File.ReadAllText(file);
                     string file_version = get_extended_version(sql_file);
 
-                    if( null != file_version && 0 < version.CompareTo(file_version))
+                    if( null != file_version && 0 > version.CompareTo(file_version))
                     {
                         version = file_version;
                     }
@@ -359,7 +365,7 @@ class scripter {
                 util.drawTextProgressBar(++jdx, count, obname);
             }
 
-            Script(scripter, objs, file, prefix, version);
+            Script(scripter, objs, file, prefix, version, oi);
 
         }
 
