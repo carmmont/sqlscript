@@ -213,7 +213,7 @@ class scripter {
                     drop = System.Text.RegularExpressions.Regex.Replace(drop, @"@value=N'(\d+\.){3}\d+' ,", "");
                     */
 
-                    sql_return += $"IF NOT EXISTS({ext}){Environment.NewLine}BEGIN{Environment.NewLine}{extprop.Replace("GO", "")}{Environment.NewLine}END{Environment.NewLine}GO{Environment.NewLine}";
+                    extprop = $"IF NOT EXISTS({ext}){Environment.NewLine}BEGIN{Environment.NewLine}{extprop.Replace("GO", "")}{Environment.NewLine}END{Environment.NewLine}GO{Environment.NewLine}";
                 }
 
                 sql_return += extprop;

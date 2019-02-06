@@ -24,16 +24,12 @@ END
 GO
 IF NOT EXISTS(SELECT value FROM fn_listextendedproperty('FILE VERSION', 'schema', 'dbo', 'TABLE', 'IDX_HISTORY', NULL, NULL))
 BEGIN
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.6.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'IDX_HISTORY';
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.7.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'IDX_HISTORY';
 
 EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'IDX_HISTORY';
 
 
 END
-GO
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.6.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'IDX_HISTORY';
-GO
-EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'IDX_HISTORY';
 GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[TABLE1]') AND type in (N'U'))
 BEGIN
@@ -45,16 +41,12 @@ END
 GO
 IF NOT EXISTS(SELECT value FROM fn_listextendedproperty('FILE VERSION', 'schema', 'dbo', 'TABLE', 'TABLE1', NULL, NULL))
 BEGIN
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.6.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'TABLE1';
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.7.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'TABLE1';
 
 EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'TABLE1';
 
 
 END
-GO
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.6.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'TABLE1';
-GO
-EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'TABLE1';
 GO
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Gathering].[Exec_Query_Plans_1]') AND type in (N'U'))
 BEGIN
@@ -103,16 +95,12 @@ END
 GO
 IF NOT EXISTS(SELECT value FROM fn_listextendedproperty('FILE VERSION', 'schema', 'Gathering', 'TABLE', 'Exec_Query_Plans_1', NULL, NULL))
 BEGIN
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.6.0' , @level0type=N'SCHEMA',@level0name=N'Gathering', @level1type=N'TABLE',@level1name=N'Exec_Query_Plans_1';
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.7.0' , @level0type=N'SCHEMA',@level0name=N'Gathering', @level1type=N'TABLE',@level1name=N'Exec_Query_Plans_1';
 
 EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'Gathering', @level1type=N'TABLE',@level1name=N'Exec_Query_Plans_1';
 
 
 END
-GO
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.6.0' , @level0type=N'SCHEMA',@level0name=N'Gathering', @level1type=N'TABLE',@level1name=N'Exec_Query_Plans_1';
-GO
-EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'Gathering', @level1type=N'TABLE',@level1name=N'Exec_Query_Plans_1';
 GO
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[refresh]') AND type in (N'P', N'PC'))
 DROP PROCEDURE [dbo].[refresh]
