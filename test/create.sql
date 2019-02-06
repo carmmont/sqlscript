@@ -22,7 +22,16 @@ CREATE TABLE [dbo].[IDX_HISTORY](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 END
 GO
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'IDX_HISTORY';
+IF NOT EXISTS(SELECT value FROM fn_listextendedproperty('FILE VERSION', 'schema', 'dbo', 'TABLE', 'IDX_HISTORY', NULL, NULL))
+BEGIN
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.6.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'IDX_HISTORY';
+
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'IDX_HISTORY';
+
+
+END
+GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.6.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'IDX_HISTORY';
 GO
 EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'IDX_HISTORY';
 GO
@@ -34,7 +43,16 @@ CREATE TABLE [dbo].[TABLE1](
 ) ON [PRIMARY]
 END
 GO
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'TABLE1';
+IF NOT EXISTS(SELECT value FROM fn_listextendedproperty('FILE VERSION', 'schema', 'dbo', 'TABLE', 'TABLE1', NULL, NULL))
+BEGIN
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.6.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'TABLE1';
+
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'TABLE1';
+
+
+END
+GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.6.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'TABLE1';
 GO
 EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'TABLE1';
 GO
@@ -83,7 +101,16 @@ ALTER TABLE [Gathering].[Exec_Query_Plans_1] ADD CONSTRAINT DF__Exec_Quer__times
 END
 
 GO
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'Gathering', @level1type=N'TABLE',@level1name=N'Exec_Query_Plans_1';
+IF NOT EXISTS(SELECT value FROM fn_listextendedproperty('FILE VERSION', 'schema', 'Gathering', 'TABLE', 'Exec_Query_Plans_1', NULL, NULL))
+BEGIN
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.6.0' , @level0type=N'SCHEMA',@level0name=N'Gathering', @level1type=N'TABLE',@level1name=N'Exec_Query_Plans_1';
+
+EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'Gathering', @level1type=N'TABLE',@level1name=N'Exec_Query_Plans_1';
+
+
+END
+GO
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.6.0' , @level0type=N'SCHEMA',@level0name=N'Gathering', @level1type=N'TABLE',@level1name=N'Exec_Query_Plans_1';
 GO
 EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'Gathering', @level1type=N'TABLE',@level1name=N'Exec_Query_Plans_1';
 GO
@@ -109,8 +136,11 @@ BEGIN
 END
 
 
+
+
+
 GO
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.6.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'refresh';
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.9.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'refresh';
 GO
 EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'refresh';
 GO
@@ -328,8 +358,11 @@ END
 
 
 
+
+
+
 GO
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.4.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'DBA_REORGANIZE_INDEXES';
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.7.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'DBA_REORGANIZE_INDEXES';
 GO
 EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'DBA_REORGANIZE_INDEXES';
 GO
@@ -344,8 +377,11 @@ AS
 
 
 
+
+
+
 GO
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.4.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'GET_ITEMS';
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.7.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'GET_ITEMS';
 GO
 EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'GET_ITEMS';
 GO
@@ -359,8 +395,11 @@ AS
 
 
 
+
+
+
 GO
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.4.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'NEW_ITEM';
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.7.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'NEW_ITEM';
 GO
 EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'NEW_ITEM';
 GO
@@ -384,8 +423,11 @@ BEGIN
 END
 
 
+
+
+
 GO
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.1.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'FUNCTION',@level1name=N'num_echo';
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.4.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'FUNCTION',@level1name=N'num_echo';
 GO
 EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'FUNCTION',@level1name=N'num_echo';
 GO
@@ -405,8 +447,11 @@ RETURN
 )
 
 
+
+
+
 GO
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.1.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'FUNCTION',@level1name=N'FFF';
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.4.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'FUNCTION',@level1name=N'FFF';
 GO
 EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'FUNCTION',@level1name=N'FFF';
 GO
@@ -443,8 +488,11 @@ BEGIN
 END
 
 
+
+
+
 GO
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.4.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'test_coverage';
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.7.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'test_coverage';
 GO
 EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'PROCEDURE',@level1name=N'test_coverage';
 GO
@@ -457,8 +505,11 @@ SELECT        TABLE1.*
 FROM            TABLE1
 
 
+
+
+
 GO
-EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.1.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'VIEW',@level1name=N'view_1';
+EXEC sys.sp_addextendedproperty @name=N'FILE VERSION', @value=N'0.0.4.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'VIEW',@level1name=N'view_1';
 GO
 EXEC sys.sp_addextendedproperty @name=N'DATABASE VERSION', @value=N'0.0.0.0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'VIEW',@level1name=N'view_1';
 GO

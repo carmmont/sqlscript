@@ -114,7 +114,24 @@ class scripter {
     {
         return System.Text.RegularExpressions.Regex.IsMatch(version, @"\d+\.\d+\.\d+\.\d+");
     }
+    //IF EXISTS (SELECT value FROM fn_listextendedproperty('FILE VERSION', 'schema', 'dbo', 'TABLE', 'IDX_HISTORY', NULL, NULL))
+    private static string get_listextendedproperty(string property, obj_info oi)
+    {
+       //AGGREGATE, DEFAULT, FUNCTION, LOGICAL FILE NAME, PROCEDURE, QUEUE
+        //, RULE, SEQUENCE, SYNONYM, TABLE, TABLE_TYPE, TYPE, VIEW, XML SCHEMA COLLECTION, and NULL.
+        //db.ExecuteWithResults
 
+        string type = extended_type(oi);
+
+        
+        if(null != type)
+        {
+            string sql = $"SELECT value FROM fn_listextendedproperty('{property}', 'schema', '{oi.schema}', '{type}', '{oi.name}', NULL, NULL)";
+            return sql;
+        } 
+
+        return null;
+    }
     private static string Script(Scripter scripter
         , SqlSmoObject[] objs
         , string file = null
@@ -182,8 +199,24 @@ class scripter {
             string type = extended_type(oi);
             if(null != type)
             {
-                sql_return += compile_extended_template(FILE_VERSION, version, oi.schema, type , oi.name);
-                sql_return += compile_extended_template(DATABASE_VERSION, "0.0.0.0", oi.schema, type, oi.name);
+                string extprop = compile_extended_template(FILE_VERSION, version, oi.schema, type , oi.name);
+                       extprop += compile_extended_template(DATABASE_VERSION, "0.0.0.0", oi.schema, type, oi.name);
+
+                if("TABLE" == type)
+                {
+                    string ext = get_listextendedproperty(FILE_VERSION, oi);
+
+                    /*
+                    string drop = extprop.Replace("sys.sp_addextendedproperty", "sys.sp_dropextendedproperty");
+                           drop = drop.Replace("GO", "");
+
+                    drop = System.Text.RegularExpressions.Regex.Replace(drop, @"@value=N'(\d+\.){3}\d+' ,", "");
+                    */
+
+                    sql_return += $"IF NOT EXISTS({ext}){Environment.NewLine}BEGIN{Environment.NewLine}{extprop.Replace("GO", "")}{Environment.NewLine}END{Environment.NewLine}GO{Environment.NewLine}";
+                }
+
+                sql_return += extprop;
             }
         }
         
@@ -226,19 +259,15 @@ class scripter {
                 );
         }
 
+    
     private static string get_object_version(Database db, obj_info oi)
     {
-        //AGGREGATE, DEFAULT, FUNCTION, LOGICAL FILE NAME, PROCEDURE, QUEUE
-        //, RULE, SEQUENCE, SYNONYM, TABLE, TABLE_TYPE, TYPE, VIEW, XML SCHEMA COLLECTION, and NULL.
-        //db.ExecuteWithResults
-
-        string type = extended_type(oi);
-
         
-        if(null != type)
+        string sql = get_listextendedproperty(FILE_VERSION, oi);
+        
+        if(null != sql)
         {
-            string sql = $"SELECT value FROM fn_listextendedproperty('{FILE_VERSION}', 'schema', 'dbo', '{type}', NULL, NULL, NULL)";
-            DataSet ds = db.ExecuteWithResults(sql);
+             DataSet ds = db.ExecuteWithResults(sql);
 
             if(ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
             {
