@@ -428,7 +428,8 @@ end
                 var excludetyes = command.Option("-x | --exclude-types", "Types to exclude from the index", CommandOptionType.MultipleValue);
                 var output = command.Option("-o | --output", "Script Build Output", CommandOptionType.SingleValue);
                 var basepath = command.Option("-b | --basepath", "Root of files referenced by index", CommandOptionType.SingleValue);
-
+                var database_version = command.Option("--database-version", "Insert database version in script with object version", CommandOptionType.SingleValue);
+                    
                     command.OnExecute(()=>
                     {
                         string outputfile = output.Value();
@@ -471,6 +472,9 @@ end
                                     {
                                         string source = util.FilePath(basep, oi, false);
                                         string content = System.IO.File.ReadAllText(source);
+
+                                        if(database_version.HasValue())
+                                            content = scripter.insert_database_version(content, database_version.Value());
 
                                         if (null != outputfile)
                                         {

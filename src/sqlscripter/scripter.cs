@@ -76,6 +76,8 @@ class scripter {
        return extended;
     }
 
+    
+
     private static string get_extended_rx(string property)
     {
        string rx = "([^']+)";
@@ -83,6 +85,20 @@ class scripter {
        string extended = compile_extended_template(property, rx, rx, rx, rx);
               
        return extended;
+    }
+
+    public static string insert_database_version(string sql, string version)
+    {
+        if(!is_version_valid(version))
+            throw new ScripterException("Invalid version " + version);
+
+       string rx = get_extended_rx(DATABASE_VERSION);
+       string replace_rx = compile_extended_template(DATABASE_VERSION, version, "$2", "$3", "$4");
+
+       rx = rx.Replace(Environment.NewLine + "GO" + Environment.NewLine, "");
+       replace_rx = replace_rx.Replace(Environment.NewLine + "GO" + Environment.NewLine, "");
+
+       return System.Text.RegularExpressions.Regex.Replace(sql, rx, replace_rx);
     }
 
     private static string get_extended_value(string property, string sql)
@@ -317,7 +333,7 @@ class scripter {
             {
                 version = get_object_version(db, oi);
 
-                if(null == version)
+                if(null == version || (!is_version_valid(version)) )
                     version = "0.0.0.0";
 
                 if(null != file && System.IO.File.Exists(file))
@@ -325,7 +341,7 @@ class scripter {
                     string sql_file = System.IO.File.ReadAllText(file);
                     string file_version = get_extended_version(sql_file);
 
-                    if( null != file_version && 0 > version.CompareTo(file_version))
+                    if( null != file_version && is_version_valid(file_version) && 0 > version.CompareTo(file_version))
                     {
                         version = file_version;
                     }

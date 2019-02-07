@@ -12,10 +12,17 @@
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/src/sqlscripter/bin/Debug/netcoreapp2.1/sqlscripter.dll",
             //"args": ["dbindex", "-S", "127.0.0.1", "-U", "sa", "-P", "bits#999", "-d", "TESTDB", "-i", "dbindex", "--query-mode"]
-            
+           
+            /*
             "args" : ["script", "-i",  "index.txt",  "-S",  ".", "-U", "sa"
                 , "-P",  "bits#999", "-o", "./sql"
                 , "-d", "testdb", "--sql-version", "Version100", "--file-version"]
+            */
+
+             
+            "args" : ["build", "-i",  "index.txt",  "-S",  ".", "-U", "sa"
+                , "-P",  "bits#999", "-o", "../../test/create.sql", "-b", "./sql"
+                , "-d", "testdb", "--database-version", "0.9.0.0"]
             
             /*
                 coverage -S . -U sa -P bits#999 -d testdb -f -s "exec test_coverage 0" --save info.xml

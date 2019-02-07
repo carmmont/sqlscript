@@ -4,6 +4,7 @@ param([string] $psw = $null
     , [string] $server = "."
     , [string] $script = "create.sql"
     , [string] $action = "export"
+    , [string] $dbversion = "1.0.0.0"
 )
 
 $ErrorActionPreference = "Stop";
@@ -15,7 +16,7 @@ dotnet run -- dbindex -S $server -d $database -U $user -P $psw -i index.txt --qu
 "export objects" | out-host
 dotnet run -- script -S $server -d $database -U $user -P $psw '-o' './sql' '-i' 'index.txt' --sql-version 'Version100' --file-version
 "build final script" | out-host
-dotnet run -- build -S $server -d $database -U $user -P $psw '-b' './sql' '-i' 'index.txt' -o $script
+dotnet run -- build -S $server -d $database -U $user -P $psw '-b' './sql' '-i' 'index.txt' -o $script --database-version $dbversion
     
 }
 
