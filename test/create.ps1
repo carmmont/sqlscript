@@ -20,6 +20,12 @@ dotnet run -- build -S $server -d $database -U $user -P $psw '-b' './sql' '-i' '
     
 }
 
+function modified()
+{
+    "export modified objects" | out-host
+    dotnet run -- script -S $server -d $database -U $user -P $psw '-o' './sql' '--modified' '1440' --sql-version 'Version100' --file-version
+}
+
 function coverage() {
     "run test coverage" | Out-Host
     dotnet run -- coverage -S $server -d $database -U $user -P $psw --save "test.xml" -f -s "exec test_coverage 0" 

@@ -376,7 +376,8 @@ end
                 var file = command.Option("-f | -i | --file", "Input File", CommandOptionType.SingleValue);
                 var version = command.Option("--sql-version", "Sql Version Generation Target", CommandOptionType.SingleValue); 
                 var file_version = command.Option("--file-version", "Enable object version support", CommandOptionType.NoValue);
-
+                var modified = command.Option("--modified", "Export all object modified in the last <input> minutes. Es 1440 last day", CommandOptionType.SingleValue);
+                
                 command.OnExecute(() =>
                 {
                 
@@ -387,13 +388,25 @@ end
                         return 2;
                     
                     Server server = new Server(serverConnection);
+
+                    Database db = server.Databases[sqldb.Value()];
                    
                     //TODO: ALLOW MULTIPLE TARGETS AND MULTIPLE FILES
-                    string[] objs = target.Values.ToArray();
+                    List<string> objs = new List<string>();
+                    objs.AddRange(target.Values.ToArray());
 
                     if (null != file.Value())
                     {
-                        objs = System.IO.File.ReadAllLines(file.Value());
+                        string [] lines = System.IO.File.ReadAllLines(file.Value());
+                        objs.AddRange(lines);
+                          
+                    }
+
+                    if(modified.HasValue())
+                    {
+                        int minutes = int.Parse(modified.Value());
+                        string [] mods = exporter.get_modified_objects(db, minutes);
+                        objs.AddRange(mods);
                     }
 
                     string outputdir = output.Value() ?? "./";
@@ -405,7 +418,7 @@ end
                        sql_version = (SqlServerVersion) Enum.Parse(typeof(SqlServerVersion), version.Value());
                    }
                     
-                   scripter.Script(objs, server.Databases[sqldb.Value()]
+                   scripter.Script(objs.ToArray(), db
                    , outputdir, (!nouseprogress.HasValue())
                    , sql_version
                    , file_version.HasValue());
