@@ -207,6 +207,7 @@ test_script:
     - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress
     - dotnet ./src/sqlscripter/out/sqlscripter.dll script -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB -i index.txt --no-progress --file-version
     - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -o create.sql --no-progress
+    - dotnet ./src/sqlscripter/out/sqlscripter.dll build -i index.txt -o create.sql --no-progress --database-version "0.9.0.0"
     - pwsh: (gc .\create.sql | out-string) -eq (gc ./test/create.sql | out-string)
     - sqlcmd -b -S %SQLINSTANCE% -U sa -P "Password12!" -d TESTDB2 -i ./create.sql
     #idempotent
