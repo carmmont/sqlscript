@@ -22,11 +22,11 @@ dotnet tool update -g sqlscripter
 ## Create a Full script of a database respecting dependency
 
 ```
-sqlscripter dbindex -S <database> -U <user> -P <password> -d <dbtarget> -i <index-file> 
+sqlscripter dbindex -S <server> -U <user> -P <password> -d <dbtarget> -i <index-file> 
 ```
 
 ```
-sqlscripter script -S <database> -U <user> -P <password> -d <dbtarget> -i <index-file> -o <output-directory>
+sqlscripter script -S <server> -U <user> -P <password> -d <dbtarget> -i <index-file> -o <output-directory>
 ```
 
 ```

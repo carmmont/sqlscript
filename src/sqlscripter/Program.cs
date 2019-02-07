@@ -371,7 +371,7 @@ end
 
                 command.Description = $"{command.Name} allows to script objects listed in a file or in the command line";
 
-                var target = command.Option("-t | --target", "Sql target Object", CommandOptionType.MultipleValue);
+                var target = command.Option("-t | --target", "Sql target Object. For instance Table:[dbo].[Table_1]", CommandOptionType.MultipleValue);
                 var output = command.Option("-o | --output", "Scripts Directory Output", CommandOptionType.SingleValue);
                 var file = command.Option("-f | -i | --file", "Input File", CommandOptionType.SingleValue);
                 var version = command.Option("--sql-version", "Sql Version Generation Target", CommandOptionType.SingleValue); 
@@ -387,9 +387,8 @@ end
                         return 2;
                     
                     Server server = new Server(serverConnection);
-
-                    
-
+                   
+                    //TODO: ALLOW MULTIPLE TARGETS AND MULTIPLE FILES
                     string[] objs = target.Values.ToArray();
 
                     if (null != file.Value())

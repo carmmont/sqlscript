@@ -23,3 +23,10 @@ ORDER BY O.modify_date desc
 
 
  */
+
+ namespace sqlscripter{
+     public class exporter
+     {
+         //public static 
+     }
+ }

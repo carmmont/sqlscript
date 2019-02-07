@@ -43,7 +43,8 @@ class scripter {
 
         if ("Synonym" == oi.type)
         {
-           type = "SYNONYM"; 
+           //type = "SYNONYM"; 
+           type = null;
         }
 
         if ("UserDefinedFunction" == oi.type)
@@ -373,8 +374,8 @@ class scripter {
             if ("Synonym" == oi.type)
             {
                 objs[0] = db.Synonyms[oi.name, oi.schema];
-                check_oi(objs[0], oi);
-                prefix = ScriptDrop(scripter, objs);
+                //check_oi(objs[0], oi);
+                //prefix = ScriptDrop(scripter, objs);
 
             }
 
