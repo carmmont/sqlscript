@@ -18,12 +18,18 @@
                 , "-P",  "bits#999", "-o", "./sql"
                 , "-d", "testdb", "--sql-version", "Version100", "--file-version"]
             */
+//"script" "--modified" "20" "--psw"  "*******" "--user" "sa" "--database" "DBMAINT" "--server" "192.168.56.110" "--sql-version" "Version100" "--file-version"
+            "args" : ["script", "--modified" , "125"
+                , "--psw" , "******", "--user", "sa"
+                , "--database",  "DBMAINT", "--server", "192.168.56.110"
+                , "--sql-version", "Version100", "--file-version"] 
 
+            /*
             "args" : ["script", "-t",  "Table:[Gathering].[Exec_Query_Plans_1]",  "-S",  ".", "-U", "sa"
                 , "-P",  "bits#999", "-o", "./sql"
                 , "-d", "testdb", "--sql-version", "Version100", "--file-version"]
 
-            /*
+            
             "args" : ["build", "-i",  "index.txt",  "-S",  ".", "-U", "sa"
                 , "-P",  "bits#999", "-o", "../../test/create.sql", "-b", "./sql"
                 , "-d", "testdb", "--database-version", "0.9.0.0"]

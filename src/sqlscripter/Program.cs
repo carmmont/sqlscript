@@ -406,6 +406,10 @@ end
                     {
                         int minutes = int.Parse(modified.Value());
                         string [] mods = exporter.get_modified_objects(db, minutes);
+
+                        foreach(string obj in mods)
+                            Console.WriteLine(string.Format("\t\tMODIFIED:\t{0}", obj));
+
                         objs.AddRange(mods);
                     }
 
