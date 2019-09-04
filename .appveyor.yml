@@ -152,7 +152,7 @@ build_script:
 # scripts to run after build
 after_build:
         - ps: 7z a sqlscripter.zip './src/sqlscripter/out/*';
-        #- ps: 7z a sqlscripterx64.zip './src/sqlscripter/Win64/*'; 
+        - ps: 7z a sqlscripterx64.zip './src/sqlscripter/Win64/*'; 
 
 # to disable automatic builds
 #build: off
@@ -233,8 +233,8 @@ test_script:
 artifacts:
     - path: sqlscripter.zip
       name: sqlscripter
-    #- path: sqlscripterx64.zip
-    #  name: sqlscripterx64
+    - path: sqlscripterx64.zip
+      name: sqlscripterx64
 #- path: '.\test\bin\Win32\Release\mg.pdb'
 #  name: mg.pdb
 #- path: win-release.zip
@@ -256,7 +256,7 @@ deploy:
     # Deploy to GitHub Releases
   - provider: GitHub
     release: $(appveyor_repo_tag_name)
-    artifact: sqlscripter.zip
+    artifact: sqlscripter.zip,sqlscripterx64.zip
     draft: true
     prerelease: true
     auth_token:
