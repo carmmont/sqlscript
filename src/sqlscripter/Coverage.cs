@@ -21,6 +21,9 @@ namespace sqlscripter
         public long total_logical_reads;
         public long total_physical_reads;
         public long total_logical_writes;
+
+        public long max_elapsed_time;
+        public long max_worker_time;
         public System.DateTime last_execution_time;
         public System.DateTime creation_time;
         public long statement_start_offset;
@@ -177,6 +180,9 @@ namespace sqlscripter
                 , QS.statement_start_offset
                 , QS.statement_end_offset
                 , qs.sql_handle
+                , qs.max_elapsed_time
+                , qs.max_worker_time 
+
 
                         FROM    sys.dm_exec_query_stats AS qs
                         CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) AS qt
@@ -250,6 +256,9 @@ namespace sqlscripter
                             c.statement_end_offset  = dr.GetSqlInt32(idx++).Value;
                             c.sql_handle = System.BitConverter.ToString(dr.GetSqlBinary(idx++).Value);
 
+                            c.max_elapsed_time = dr.GetSqlInt64(idx++).Value;
+                            c.max_worker_time = dr.GetSqlInt64(idx++).Value;
+
                             c.sql_handle = c.sql_handle.Replace("-", "");
                             c.sql_handle = "0x" + c.sql_handle;
 
@@ -320,6 +329,8 @@ namespace sqlscripter
                 add_attribute(node, "total_physical_reads", XmlConvert.ToString(cov.total_physical_reads));
                 add_attribute(node, "total_worker_time", XmlConvert.ToString(cov.total_worker_time));
                 //add_attribute(node, "execution_count", XmlConvert.ToString(cov.execution_count));
+                add_attribute(node, "max_elapsed_time", XmlConvert.ToString(cov.max_elapsed_time));
+                add_attribute(node, "max_worker_time", XmlConvert.ToString(cov.max_worker_time));
 
                 
 

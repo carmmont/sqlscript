@@ -198,10 +198,10 @@ end
                 command.Options.AddRange(command.Parent.Options);
 
                 command.Description = $"{command.Name} allow to connect to a database and build an ordered index of all objects";
-
                 
                 var indexfile = command.Option("-i | --index", "Generate Index File", CommandOptionType.SingleValue);
                 var querymode = command.Option("--query-mode", "Use object query for objects", CommandOptionType.NoValue);
+                var one_stored = command.Option("--one-stored", "Generate one stored dependency", CommandOptionType.SingleValue);
                 
                 command.OnExecute( () =>
                 {
@@ -213,6 +213,7 @@ end
                     ServerConnection serverConnection = get_server_connection(sqlserver, sqldb, sqluser, sqlpsw);
                     if(null == serverConnection)
                         return 2;
+
                     Server server = new Server(serverConnection);
 
                     Scripter scripter = new Scripter(server);
@@ -237,70 +238,77 @@ end
 
                     Database db = server.Databases[sqldb.Value()];
 
-                    //server.GetSmoObject
-
-                    SchemaCollection sc = db.Schemas;
-
-                    foreach (Schema schema in sc)
+                    //add all or just one sp
+                    if(one_stored.HasValue())
                     {
-                        if (!schema.IsSystemObject)
+                        var sp = db.StoredProcedures[one_stored.Value()];
+                        urns.Add(sp.Urn);
+                    }
+                    else
+                    {
+
+                        SchemaCollection sc = db.Schemas;
+
+                        foreach (Schema schema in sc)
                         {
-                            preobjects.Add(schema.Urn);
+                            if (!schema.IsSystemObject)
+                            {
+                                preobjects.Add(schema.Urn);
+                            }
+                        }                                            
+                        
+                        TableCollection tc = db.Tables;
+
+                        add_urns_from_collection(tc, urns, (!nouseprogress.HasValue()));
+
+
+                        if (fast)
+                        {
+                            add_urn_from_query(db, "P", (sp, sch) => db.StoredProcedures[sp, sch].Urn, urns, (!nouseprogress.HasValue())
+                            , (sp, sch) => !db.StoredProcedures[sp, sch].IsSystemObject );
                         }
-                    }
-                                        
-                     
-                    TableCollection tc = db.Tables;
+                        else
+                        {
 
-                    add_urns_from_collection(tc, urns, (!nouseprogress.HasValue()));
+                            var sp = server.Databases[sqldb.Value()].StoredProcedures;
+                            add_urns_from_collection(sp, urns);
+                        }
 
-
-                    if (fast)
-                    {
-                        add_urn_from_query(db, "P", (sp, sch) => db.StoredProcedures[sp, sch].Urn, urns, (!nouseprogress.HasValue())
-                        , (sp, sch) => !db.StoredProcedures[sp, sch].IsSystemObject );
-                    }
-                    else
-                    {
-
-                        var sp = server.Databases[sqldb.Value()].StoredProcedures;
-                        add_urns_from_collection(sp, urns);
-                    }
-
-                    //--------------------------------
+                        //--------------------------------
 
 
-                    if (fast)
-                    {
-                        add_urn_from_query(db, "V", (sp, sch) => db.Views[sp, sch].Urn, urns, (!nouseprogress.HasValue()));
-                    }
-                    else
-                    {
+                        if (fast)
+                        {
+                            add_urn_from_query(db, "V", (sp, sch) => db.Views[sp, sch].Urn, urns, (!nouseprogress.HasValue()));
+                        }
+                        else
+                        {
 
-                        var vs = server.Databases[sqldb.Value()].Views;
+                            var vs = server.Databases[sqldb.Value()].Views;
 
-                        add_urns_from_collection(vs, urns);
-                    }
-                    
-                    var ss = server.Databases[sqldb.Value()].Synonyms;
+                            add_urns_from_collection(vs, urns);
+                        }
+                        
+                        var ss = server.Databases[sqldb.Value()].Synonyms;
 
-                    add_urns_from_collection(ss, urns);
+                        add_urns_from_collection(ss, urns);
 
-                    if (fast)
-                    {
-                        add_urn_from_query(db, "IF", (sp, sch) => db.UserDefinedFunctions[sp, sch].Urn, urns, (!nouseprogress.HasValue()));
-                    }
-                    else
-                    {
+                        if (fast)
+                        {
+                            add_urn_from_query(db, "IF", (sp, sch) => db.UserDefinedFunctions[sp, sch].Urn, urns, (!nouseprogress.HasValue()));
+                        }
+                        else
+                        {
 
-                        var ff = server.Databases[sqldb.Value()].UserDefinedFunctions;
+                            var ff = server.Databases[sqldb.Value()].UserDefinedFunctions;
 
-                        add_urns_from_collection(ff, urns);
-                    }
+                            add_urns_from_collection(ff, urns);
+                        }
 
-                    var tt = server.Databases[sqldb.Value()].UserDefinedTypes;
+                        var tt = server.Databases[sqldb.Value()].UserDefinedTypes;
 
-                    add_urns_from_collection(tt, urns); 
+                        add_urns_from_collection(tt, urns);
+                    } 
 
                     Console.WriteLine("DISCOVERING ({0})", DateTime.UtcNow.Subtract(pinned));
                     pinned = DateTime.UtcNow;

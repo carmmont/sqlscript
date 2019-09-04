@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  
+
   <PropertyGroup>
     <PackAsTool>true</PackAsTool>
     <OutputType>Exe</OutputType>
@@ -12,6 +14,8 @@
     <Description>Sql Scripter is an opinionated tool to implement a complex CI/CD pipeline on sql server while being source control freandly.</Description>
     <Copyright>aseduto</Copyright>
   </PropertyGroup>
+
+  
 
   <ItemGroup>
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.2.5" />
