@@ -198,10 +198,10 @@ end
                 command.Options.AddRange(command.Parent.Options);
 
                 command.Description = $"{command.Name} allow to connect to a database and build an ordered index of all objects";
-
                 
                 var indexfile = command.Option("-i | --index", "Generate Index File", CommandOptionType.SingleValue);
                 var querymode = command.Option("--query-mode", "Use object query for objects", CommandOptionType.NoValue);
+                var one_stored = command.Option("--one-stored", "Generate one stored dependency", CommandOptionType.SingleValue);
                 
                 command.OnExecute( () =>
                 {
@@ -213,6 +213,7 @@ end
                     ServerConnection serverConnection = get_server_connection(sqlserver, sqldb, sqluser, sqlpsw);
                     if(null == serverConnection)
                         return 2;
+
                     Server server = new Server(serverConnection);
 
                     Scripter scripter = new Scripter(server);
@@ -237,70 +238,77 @@ end
 
                     Database db = server.Databases[sqldb.Value()];
 
-                    //server.GetSmoObject
-
-                    SchemaCollection sc = db.Schemas;
-
-                    foreach (Schema schema in sc)
+                    //add all or just one sp
+                    if(one_stored.HasValue())
                     {
-                        if (!schema.IsSystemObject)
+                        var sp = db.StoredProcedures[one_stored.Value()];
+                        urns.Add(sp.Urn);
+                    }
+                    else
+                    {
+
+                        SchemaCollection sc = db.Schemas;
+
+                        foreach (Schema schema in sc)
                         {
-                            preobjects.Add(schema.Urn);
+                            if (!schema.IsSystemObject)
+                            {
+                                preobjects.Add(schema.Urn);
+                            }
+                        }                                            
+                        
+                        TableCollection tc = db.Tables;
+
+                        add_urns_from_collection(tc, urns, (!nouseprogress.HasValue()));
+
+
+                        if (fast)
+                        {
+                            add_urn_from_query(db, "P", (sp, sch) => db.StoredProcedures[sp, sch].Urn, urns, (!nouseprogress.HasValue())
+                            , (sp, sch) => !db.StoredProcedures[sp, sch].IsSystemObject );
                         }
-                    }
-                                        
-                     
-                    TableCollection tc = db.Tables;
+                        else
+                        {
 
-                    add_urns_from_collection(tc, urns, (!nouseprogress.HasValue()));
+                            var sp = server.Databases[sqldb.Value()].StoredProcedures;
+                            add_urns_from_collection(sp, urns);
+                        }
 
-
-                    if (fast)
-                    {
-                        add_urn_from_query(db, "P", (sp, sch) => db.StoredProcedures[sp, sch].Urn, urns, (!nouseprogress.HasValue())
-                        , (sp, sch) => !db.StoredProcedures[sp, sch].IsSystemObject );
-                    }
-                    else
-                    {
-
-                        var sp = server.Databases[sqldb.Value()].StoredProcedures;
-                        add_urns_from_collection(sp, urns);
-                    }
-
-                    //--------------------------------
+                        //--------------------------------
 
 
-                    if (fast)
-                    {
-                        add_urn_from_query(db, "V", (sp, sch) => db.Views[sp, sch].Urn, urns, (!nouseprogress.HasValue()));
-                    }
-                    else
-                    {
+                        if (fast)
+                        {
+                            add_urn_from_query(db, "V", (sp, sch) => db.Views[sp, sch].Urn, urns, (!nouseprogress.HasValue()));
+                        }
+                        else
+                        {
 
-                        var vs = server.Databases[sqldb.Value()].Views;
+                            var vs = server.Databases[sqldb.Value()].Views;
 
-                        add_urns_from_collection(vs, urns);
-                    }
-                    
-                    var ss = server.Databases[sqldb.Value()].Synonyms;
+                            add_urns_from_collection(vs, urns);
+                        }
+                        
+                        var ss = server.Databases[sqldb.Value()].Synonyms;
 
-                    add_urns_from_collection(ss, urns);
+                        add_urns_from_collection(ss, urns);
 
-                    if (fast)
-                    {
-                        add_urn_from_query(db, "IF", (sp, sch) => db.UserDefinedFunctions[sp, sch].Urn, urns, (!nouseprogress.HasValue()));
-                    }
-                    else
-                    {
+                        if (fast)
+                        {
+                            add_urn_from_query(db, "IF", (sp, sch) => db.UserDefinedFunctions[sp, sch].Urn, urns, (!nouseprogress.HasValue()));
+                        }
+                        else
+                        {
 
-                        var ff = server.Databases[sqldb.Value()].UserDefinedFunctions;
+                            var ff = server.Databases[sqldb.Value()].UserDefinedFunctions;
 
-                        add_urns_from_collection(ff, urns);
-                    }
+                            add_urns_from_collection(ff, urns);
+                        }
 
-                    var tt = server.Databases[sqldb.Value()].UserDefinedTypes;
+                        var tt = server.Databases[sqldb.Value()].UserDefinedTypes;
 
-                    add_urns_from_collection(tt, urns); 
+                        add_urns_from_collection(tt, urns);
+                    } 
 
                     Console.WriteLine("DISCOVERING ({0})", DateTime.UtcNow.Subtract(pinned));
                     pinned = DateTime.UtcNow;
@@ -406,6 +414,10 @@ end
                     {
                         int minutes = int.Parse(modified.Value());
                         string [] mods = exporter.get_modified_objects(db, minutes);
+
+                        foreach(string obj in mods)
+                            Console.WriteLine(string.Format("\t\tMODIFIED:\t{0}", obj));
+
                         objs.AddRange(mods);
                     }
 
@@ -565,7 +577,77 @@ end
 
             
             });
-            
+
+            commandLineApplication.Command("template", command =>
+            {
+
+                command.Options.AddRange(command.Parent.Options);
+                command.Description = @"Run sql statement from files or command line and track coverage";
+
+                //var indexfiles = command.Option("-i | --input", "Input Coverage File", CommandOptionType.MultipleValue);
+                //var statements = command.Option("-s | --statement", "Input Coverage Statement", CommandOptionType.MultipleValue);
+                //var free_proccache = command.Option("-f | --free-proccache", @"Run DBCC FREEPROCCACHE before your test in order
+                // to count only what you are running and not previous runs.
+                // Do Not use in a production system.", CommandOptionType.NoValue);
+                //var no_exec = command.Option("-n | --no-exec", @"Do not Run the procedure.", CommandOptionType.NoValue);
+                //var datail = command.Option("--detail", @"Provide the list of not covered query_hash", CommandOptionType.NoValue);
+                //var save = command.Option("--save", @"save a test result with performance and coverage", CommandOptionType.SingleValue);
+
+                var table = command.Option("-t | --table", "the table to genarate CRUD", CommandOptionType.MultipleValue);
+                var output = command.Option("-o | --output", "Scripts Directory Output", CommandOptionType.SingleValue);
+                //var file = command.Option("-f | -i | --file", "Input File", CommandOptionType.SingleValue);
+
+                command.OnExecute(() =>
+                {
+                    //string outputdir = output.Value() ?? "./StoredProcedures";
+
+                    util.disable_console = nouseprogress.HasValue();
+
+                    ServerConnection serverConnection = get_server_connection(sqlserver, sqldb, sqluser, sqlpsw);
+                    if (null == serverConnection)
+                        return 2;
+
+                    Server server = new Server(serverConnection);
+
+                    Database db = server.Databases[sqldb.Value()];
+                    if (null == db)
+                        throw new ScripterException("Invalid database");
+
+                    foreach (string t in table.Values)
+                    {
+                        Table db_table;
+
+                        if (!t.Contains ("."))
+                        {
+                            db_table = db.Tables[t];
+                        } else
+                        {
+                            string a = t.Split('.')[0];
+                            string b = t.Split('.')[1];
+                            db_table = db.Tables[b, a];
+                        }
+                        
+                        Template temp = new Template();
+
+                        temp.Table = db_table;
+
+                        //Console.Write(temp.Execute());
+
+                        StringCollection sc = temp.Execute();
+
+                        foreach (string s in sc)
+                        {
+                            Console.Write(s);
+
+                            db.ExecuteNonQuery(s);
+                        }
+                    }
+
+                    return 0;
+
+                });
+            });
+
             commandLineApplication.HelpOption("-h | --help", inherited: true);
 
             try

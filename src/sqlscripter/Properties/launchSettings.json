@@ -2,8 +2,8 @@
   "profiles": {
     "sqlscripter": {
       "commandName": "Project",
-      "commandLineArgs": "script -i index.txt -S . -U sa   -P bits#999 -o ./sql -d testdb --sql-version Version100",
-      "workingDirectory": "A:\\Alessandro\\My Alx\\src\\tmp\\sqlscripter\\src\\sqlscripter"
+      "commandLineArgs": "build -i index-schemas.txt  -i index-tables.txt -o dbmaintall2.sql",
+      "workingDirectory": "E:\\Work\\Source\\DBMAINT"
     }
   }
 }
