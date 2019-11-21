@@ -393,6 +393,12 @@ class scripter {
                 check_oi(objs[0], oi);
             }
 
+            if ("UserDefinedDataType" == oi.type)
+            {
+                objs[0] = db.UserDefinedDataTypes[oi.name, oi.schema];
+                check_oi(objs[0], oi);
+            }
+
             if ("Schema" == oi.type)
             {
                 objs[0] = db.Schemas[oi.name];
