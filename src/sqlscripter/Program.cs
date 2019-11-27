@@ -102,7 +102,6 @@ end
                         urns.Add(ob.Urn);
                     }
                 }
- 
             }
 
             Console.WriteLine("PROCESSED {0} {1}ms", coll.GetType().Name, DateTime.UtcNow.Subtract(dt).TotalMilliseconds);
@@ -117,7 +116,20 @@ end
             return $"{m.Groups[2].Value}:[{m.Groups[4].Value}].[{m.Groups[3].Value}]";
         }
 
-        
+        static string GetSchemaFromUrn(string urn)
+        {
+            //Server\[@Name='[^']+'\]\/Database\[@Name='[^']+'\]\/Schema\[@Name='([^']+)'\]
+            var m =  System.Text.RegularExpressions.Regex.Match(urn, @"Schema\[@Name='(\w+)'\]");
+
+            if (m.Success)
+                return $"{m.Groups[1].Value}";
+            else
+            {
+                //Server[@Name='4f4c6527222b']/Database[@Name='MONITORING']/Table[@Name='Procedures' and @Schema='Gathering']
+                var m1 = System.Text.RegularExpressions.Regex.Match(urn, @"and @Schema='(\w+)'");
+                return $"{m1.Groups[1].Value}";
+            }
+        }
 
         static bool validate_connection(CommandOption sqlserver , 
             CommandOption sqldb, CommandOption sqluser, CommandOption  sqlpsw  )
@@ -198,13 +210,17 @@ end
                 command.Options.AddRange(command.Parent.Options);
 
                 command.Description = $"{command.Name} allow to connect to a database and build an ordered index of all objects";
-                
+
                 var indexfile = command.Option("-i | --index", "Generate Index File", CommandOptionType.SingleValue);
                 var querymode = command.Option("--query-mode", "Use object query for objects", CommandOptionType.NoValue);
                 var one_stored = command.Option("--one-stored", "Generate one stored dependency", CommandOptionType.SingleValue);
-                
+                var include_schemas = command.Option("-sc | --schema", "Database schemas to include in the output", CommandOptionType.MultipleValue);
+
                 command.OnExecute( () =>
                 {
+                    StringCollection schemas = new StringCollection();
+                    if (null != include_schemas)
+                        schemas.AddRange(include_schemas.Values.ToArray());
 
                     DateTime pinned = DateTime.UtcNow;
 
@@ -221,7 +237,6 @@ end
                     {
                          AllowSystemObjects = false
                          , WithDependencies = true
-
                     };
 
                     scripter.Options = op;
@@ -246,21 +261,22 @@ end
                     }
                     else
                     {
-
                         SchemaCollection sc = db.Schemas;
-
+                        
                         foreach (Schema schema in sc)
                         {
                             if (!schema.IsSystemObject)
                             {
+                                //if (null==schemas || schemas.Count==0 || (null != schemas && schemas.Count != 0 && schemas.Contains(schema.Name)))
                                 preobjects.Add(schema.Urn);
                             }
                         }                                            
-                        
-                        TableCollection tc = db.Tables;
 
+                        TableCollection tc = db.Tables;
+                    
                         add_urns_from_collection(tc, urns, (!nouseprogress.HasValue()));
 
+                        
 
                         if (fast)
                         {
@@ -269,13 +285,11 @@ end
                         }
                         else
                         {
-
                             var sp = server.Databases[sqldb.Value()].StoredProcedures;
                             add_urns_from_collection(sp, urns);
                         }
 
                         //--------------------------------
-
 
                         if (fast)
                         {
@@ -283,7 +297,6 @@ end
                         }
                         else
                         {
-
                             var vs = server.Databases[sqldb.Value()].Views;
 
                             add_urns_from_collection(vs, urns);
@@ -308,9 +321,12 @@ end
                         var tt = server.Databases[sqldb.Value()].UserDefinedTypes;
 
                         add_urns_from_collection(tt, urns);
-                    } 
+                    }
 
-                    Console.WriteLine("DISCOVERING ({0})", DateTime.UtcNow.Subtract(pinned));
+                    //string s = urns[0].GetAttribute("Schema");
+
+                    //(?m)(?<=\@Schema=)'(.+?)'
+                     Console.WriteLine("DISCOVERING ({0})", DateTime.UtcNow.Subtract(pinned));
                     pinned = DateTime.UtcNow;
 
                     //scripter.DiscoveryProgress += Scripter_DiscoveryProgress;
@@ -341,19 +357,19 @@ end
 
                     foreach (Microsoft.SqlServer.Management.Sdk.Sfc.Urn urn in preobjects)
                     {
-                        UrnToIndex(db.Name, path, urn, index);
+                        if (schemas==null || schemas.Count==0 || (schemas.Count>0 && schemas.IndexOf(GetSchemaFromUrn(urn.ToString())) !=-1))
+                            UrnToIndex(db.Name, path, urn, index);
                     }
                     
                     foreach (DependencyCollectionNode j in dc)
                     {
-                        
                         Microsoft.SqlServer.Management.Sdk.Sfc.Urn urn = j.Urn;
-                        UrnToIndex(db.Name, path, urn, index);
+                        if (schemas == null || schemas.Count == 0 || (schemas.Count > 0 && schemas.IndexOf(GetSchemaFromUrn(urn.ToString())) != -1))
+                            UrnToIndex(db.Name, path, urn, index);
                        
                     }
 
                     Console.WriteLine("EXPORTED ({0})", DateTime.UtcNow.Subtract(pinned));
-                    
 
                     return 0;
                 });
@@ -385,10 +401,10 @@ end
                 var version = command.Option("--sql-version", "Sql Version Generation Target", CommandOptionType.SingleValue); 
                 var file_version = command.Option("--file-version", "Enable object version support", CommandOptionType.NoValue);
                 var modified = command.Option("--modified", "Export all object modified in the last <input> minutes. Es 1440 last day", CommandOptionType.SingleValue);
-                
+
                 command.OnExecute(() =>
                 {
-                
+
                     util.disable_console = nouseprogress.HasValue();
 
                     ServerConnection serverConnection = get_server_connection(sqlserver, sqldb, sqluser, sqlpsw);
@@ -453,8 +469,9 @@ end
                 var output = command.Option("-o | --output", "Script Build Output", CommandOptionType.SingleValue);
                 var basepath = command.Option("-b | --basepath", "Root of files referenced by index", CommandOptionType.SingleValue);
                 var database_version = command.Option("--database-version", "Insert database version in script with object version", CommandOptionType.SingleValue);
-                    
-                    command.OnExecute(()=>
+                var use_relative_path = command.Option("-r | --relative-path", "Use indexes relative path to reference files", CommandOptionType.NoValue);
+ 
+                command.OnExecute(()=>
                     {
                         string outputfile = output.Value();
                         if (null != outputfile)
@@ -464,6 +481,7 @@ end
                         }
 
                         //ProcessDirs(pretypes.Values.ToArray(), outputfile);
+                        bool relative_path = use_relative_path.HasValue();
 
                         string basep = basepath.Value();
                         string main_index = indexfiles.Values[0];
@@ -473,14 +491,16 @@ end
 
                         foreach (string indexfile in indexfiles.Values)
                         {
-                            string indexfilepath = System.IO.Path.GetFullPath(System.IO.Path.Join(basep, indexfile));
-                            if(!System.IO.File.Exists(indexfilepath))
+                            string indexfilepath = System.IO.Path.GetFullPath(System.IO.Path.Join(basep, System.IO.Path.GetFileName(indexfile)));
+                            
+                            if (!System.IO.File.Exists(indexfilepath))
                                 indexfilepath = System.IO.Path.GetFullPath(indexfile);
 
+                            string indexfiledir = System.IO.Path.GetDirectoryName(indexfile);
 
                             System.Console.WriteLine("Adding " + System.IO.Path.GetFileName(indexfile));
 
-                            string[] types = System.IO.File.ReadAllLines(indexfilepath);
+                            string[] types = System.IO.File.ReadAllLines(relative_path ? indexfile : indexfilepath);
 
                             int types_count = 0;
                             
@@ -494,7 +514,7 @@ end
                                 {
                                     if (!excludetyes.Values.Contains(oi.type))
                                     {
-                                        string source = util.FilePath(basep, oi, false);
+                                        string source = util.FilePath((relative_path ? indexfiledir : basep), oi, false);
                                         string content = System.IO.File.ReadAllText(source);
 
                                         if(database_version.HasValue())
@@ -660,6 +680,7 @@ end
             }
             catch(CommandParsingException ex)
             {
+
                 Console.Error.Write("Invalid Command Line: ");
                 Console.Error.WriteLine(ex.Message);
                 Console.Error.WriteLine(commandLineApplication.GetHelpText());

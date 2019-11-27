@@ -2,7 +2,7 @@
   "profiles": {
     "sqlscripter": {
       "commandName": "Project",
-      "commandLineArgs": "build -i index-schemas.txt  -i index-tables.txt -o dbmaintall2.sql",
+      "commandLineArgs": "build -i \"E:\\Work\\DPI\\Energy\\UC00003\\FCA.DMI.Energy.WindowsManagement.Database\\dmi_UC00003\\index.txt\" -i  \"E:\\Work\\DPI\\Energy\\UC00CSO\\FCA.DMI.Energy.AirConditioning.Database\\dmi_UC00CSO\\index.txt\" -i \"E:\\Work\\DPI\\Energy\\UC00165\\FCA.DMI.Energy.AirCompressed.Database\\dmi_UC00165\\index.txt\" -r -o sqlEnergy.sql",
       "workingDirectory": "E:\\Work\\Source\\DBMAINT"
     }
   }

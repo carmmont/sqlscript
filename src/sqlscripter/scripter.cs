@@ -294,7 +294,7 @@ class scripter {
 
         return null;
     }
-    
+
     private static void Script(string[] target, Database db
         , Scripter scripter, string output, bool progress)
     {
@@ -320,7 +320,6 @@ class scripter {
 
             string prefix = "";
 
-            
             if (null != output)
             {
                 file = util.FilePath(output, oi);

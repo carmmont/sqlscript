@@ -1,5 +1,6 @@
 using System;
-
+using System.Collections;
+using System.Collections.Specialized;
 
 namespace sqlscripter{
 
@@ -15,6 +16,14 @@ namespace sqlscripter{
 
         public static bool disable_console = false;
         private static bool disable_console_error = false;
+        private static StringDictionary _pluralTable =
+                new StringDictionary
+                {
+                        {"entry", "entries"},
+                        {"security", "security"},
+                        {"utiity", "utilities"},
+                };  
+
         public static void drawTextProgressBar(int progress, int total, string info = "")
         {
             string output = progress.ToString() + " of " + total.ToString() + " " + info;
@@ -95,12 +104,14 @@ namespace sqlscripter{
         }
         public static string FilePath(string output, obj_info oi, bool dooutput = true)
         {
-            
+ 
             string prefix = oi.type + "s";
+            if (_pluralTable[oi.type.ToLower()] != null)
+                prefix = _pluralTable[oi.type.ToLower()];
 
             string dir = System.IO.Path.GetFullPath(
-                                        System.IO.Path.Combine(output, prefix)
-                                        );
+                                    System.IO.Path.Combine(output, prefix)
+                                    );
 
             if (dooutput)
                 System.IO.Directory.CreateDirectory(dir);
