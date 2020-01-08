@@ -220,7 +220,7 @@ test_script:
     - echo %APPVEYOR_REPO_COMMIT%
     - echo %APPVEYOR_REPO_BRANCH%
     - dotnet ./minicover/src/minicover/out/dotnet-minicover.dll report --workdir ./ --threshold 50
-    - dotnet ./minicover/src/MiniCover/out/dotnet-minicover.dll coverallsreport --commit %APPVEYOR_REPO_COMMIT% --service-name appveyor --output coverall.json --service-job-id %APPVEYOR_BUILD_NUMBER% --repo-token %coverall% --branch %APPVEYOR_REPO_BRANCH% --remote origin --remote-url https://github.com/aseduto/testman.git --commit-message "%APPVEYOR_REPO_COMMIT_MESSAGE%"
+    #- dotnet ./minicover/src/MiniCover/out/dotnet-minicover.dll coverallsreport --commit %APPVEYOR_REPO_COMMIT% --service-name appveyor --output coverall.json --service-job-id %APPVEYOR_BUILD_NUMBER% --repo-token %coverall% --branch %APPVEYOR_REPO_BRANCH% --remote origin --remote-url https://github.com/aseduto/testman.git --commit-message "%APPVEYOR_REPO_COMMIT_MESSAGE%"
 
 # to disable automatic tests
 #test: off
