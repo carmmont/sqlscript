@@ -18,6 +18,8 @@ or update:
 dotnet tool update -g sqlscripter
 ```
 
+## Create CRUD stored procedure for a SQL Server Table
+sqlscripter template -S <server> -U <user> -P <password> -d <dbtarget> -t <table-name>  -o <output-directory>
 
 ## Create a Full script of a database respecting dependency
 

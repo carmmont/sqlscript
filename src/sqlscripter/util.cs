@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Specialized;
+using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace sqlscripter{
 
@@ -16,13 +18,32 @@ namespace sqlscripter{
 
         public static bool disable_console = false;
         private static bool disable_console_error = false;
-        private static StringDictionary _pluralTable =
+        private static StringDictionary _pluralExceptionsTable =
                 new StringDictionary
                 {
-                        {"entry", "entries"},
+                       // {"entry", "entries"},
                         {"security", "security"},
-                        {"utiity", "utilities"},
+                        //{"utility", "utilities"},
+                        //{"assembly", "assemblies"},
+                        //{"index", "indexes"},
                 };  
+
+        public static void AddPluralException (string key, string value)
+        {
+            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key))
+                throw new Exception("Invalid plural exception: key is null or empty");
+            if (string.IsNullOrEmpty(value) || string.IsNullOrWhiteSpace(value))
+                throw new Exception("Invalid plural exception: value is null or empty");
+
+            if (_pluralExceptionsTable.ContainsKey(key.ToLower()))
+            {
+                _pluralExceptionsTable[key] = value;
+
+            } else
+            {
+                _pluralExceptionsTable.Add(key.Trim(), value.Trim());
+            }
+        }
 
         public static void drawTextProgressBar(int progress, int total, string info = "")
         {
@@ -104,10 +125,12 @@ namespace sqlscripter{
         }
         public static string FilePath(string output, obj_info oi, bool dooutput = true)
         {
- 
-            string prefix = oi.type + "s";
-            if (_pluralTable[oi.type.ToLower()] != null)
-                prefix = _pluralTable[oi.type.ToLower()];
+            string prefix = GetPlural(oi.type);
+            if (string.IsNullOrEmpty(prefix))
+                prefix = oi.type + "s";
+
+            if (_pluralExceptionsTable != null && _pluralExceptionsTable.Count>0 && _pluralExceptionsTable[oi.type.ToLower()] != null)
+                prefix = _pluralExceptionsTable[oi.type.ToLower()];
 
             string dir = System.IO.Path.GetFullPath(
                                     System.IO.Path.Combine(output, prefix)
@@ -158,6 +181,51 @@ namespace sqlscripter{
             }
 
             return r;
+        }
+
+        public static string GetPlural(string NounString)
+        {
+            NounString = NounString.Trim();
+
+            //see also http://www.lovetolearnplace.com/Grammar/singular&pluralnouns.html#anchor1709890
+            //Nouns ending in s, z, x, sh, and ch form the plural by adding - es
+            //Nouns ending in - y preceded by a consonant is formed into a plural by changing - y to - ies.  
+            //Nouns ending in y preceded by a vowel form their plurals by adding - s.  
+            //      Example:  boy, boys; day, days
+            //Most nouns ending in o preceded by a consonant is formed into a plural by adding es
+            //Some nouns ending in f or fe are made plural by changing f or fe to - ves.  
+            //      Example:  beef, beeves; wife, wives
+
+            Regex g = new Regex(@"s\b|z\b|x\b|sh\b|ch\b");
+            MatchCollection matches = g.Matches(NounString);
+            if (matches.Count > 0)
+                NounString += "es"; //Sketches
+            else if (NounString.EndsWith("y", true, CultureInfo.InvariantCulture))
+            {
+                Regex g2 = new Regex(@"(ay|ey|iy|oy|uy)\b");
+                if (g2.Matches(NounString).Count <= 0) //e.g. cities 
+                    NounString = NounString.Substring(0, NounString.Length - 1) + "ies";
+                else
+                    NounString += "s";
+            }
+            else if (NounString.EndsWith("o", true, CultureInfo.InvariantCulture))
+            {
+                Regex g3 = new Regex(@"(ao|eo|io|oo|uo)\b");
+                if (g3.Matches(NounString).Count <= 0) //e.g. heroes 
+                    NounString += "es";
+                else
+                    NounString += "s";
+            }
+            else if (NounString.EndsWith("f", true, CultureInfo.InvariantCulture) && NounString.Length >= 1)
+            {
+                NounString = NounString.Substring(0, NounString.Length - 1) + "ves";
+            }
+            else if (NounString.EndsWith("fe", true, CultureInfo.InvariantCulture) && NounString.Length >= 2)
+                NounString = NounString.Substring(0, NounString.Length - 2) + "ves";
+            else
+                NounString += "s";
+
+            return NounString;
         }
     }
 

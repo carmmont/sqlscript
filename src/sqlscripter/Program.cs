@@ -401,11 +401,17 @@ end
                 var version = command.Option("--sql-version", "Sql Version Generation Target", CommandOptionType.SingleValue); 
                 var file_version = command.Option("--file-version", "Enable object version support", CommandOptionType.NoValue);
                 var modified = command.Option("--modified", "Export all object modified in the last <input> minutes. Es 1440 last day", CommandOptionType.SingleValue);
+                var plural_exceptions = command.Option("-sp | --singular-plural", "Singular|Plural exceptions i.e. Security|Security", CommandOptionType.MultipleValue);
 
                 command.OnExecute(() =>
                 {
-
                     util.disable_console = nouseprogress.HasValue();
+
+                    StringCollection pluralExceptions = new StringCollection();
+                    if (null != plural_exceptions)
+                        pluralExceptions.AddRange(plural_exceptions.Values.ToArray());
+
+                    ProcessPlurals(pluralExceptions);
 
                     ServerConnection serverConnection = get_server_connection(sqlserver, sqldb, sqluser, sqlpsw);
                     if(null == serverConnection)
@@ -470,8 +476,9 @@ end
                 var basepath = command.Option("-b | --basepath", "Root of files referenced by index", CommandOptionType.SingleValue);
                 var database_version = command.Option("--database-version", "Insert database version in script with object version", CommandOptionType.SingleValue);
                 var use_relative_path = command.Option("-r | --relative-path", "Use indexes relative path to reference files", CommandOptionType.NoValue);
- 
-                command.OnExecute(()=>
+                var plural_exceptions = command.Option("-sp | --singular-plural", "Singular|Plural exceptions i.e. Security|Security", CommandOptionType.MultipleValue);
+
+                command.OnExecute(() =>
                     {
                         string outputfile = output.Value();
                         if (null != outputfile)
@@ -479,6 +486,12 @@ end
                             if (System.IO.File.Exists(outputfile))
                                 System.IO.File.Delete(outputfile);
                         }
+
+                        StringCollection pluralExceptions = new StringCollection();
+                        if (null != plural_exceptions)
+                            pluralExceptions.AddRange(plural_exceptions.Values.ToArray());
+
+                        ProcessPlurals(pluralExceptions);
 
                         //ProcessDirs(pretypes.Values.ToArray(), outputfile);
                         bool relative_path = use_relative_path.HasValue();
@@ -613,7 +626,7 @@ end
                 //var datail = command.Option("--detail", @"Provide the list of not covered query_hash", CommandOptionType.NoValue);
                 //var save = command.Option("--save", @"save a test result with performance and coverage", CommandOptionType.SingleValue);
 
-                var table = command.Option("-t | --table", "the table to genarate CRUD", CommandOptionType.MultipleValue);
+                var table = command.Option("-t | --table", "The table name to genarate CRUD", CommandOptionType.MultipleValue);
                 var output = command.Option("-o | --output", "Scripts Directory Output", CommandOptionType.SingleValue);
                 //var file = command.Option("-f | -i | --file", "Input File", CommandOptionType.SingleValue);
 
@@ -788,6 +801,27 @@ end
             }
         }
 
+        private static void ProcessPlurals(StringCollection pluralExceptions)
+        {
+            StringDictionary sd = new StringDictionary();
+            string[] s_split = { ",", "|", ":", ";" };
+            if (null != pluralExceptions && 0 != pluralExceptions.Count)
+            {
+                foreach (string str in pluralExceptions)
+                {
+                    Int32 count = 2;
+
+                    string[] strlist = str.Split(s_split, count,
+                           StringSplitOptions.RemoveEmptyEntries);
+
+                    if (null != strlist && strlist.Count() > 1)
+                    {
+                        //sd.Add(s[0].ToString(), s[1].ToString());
+                        util.AddPluralException(strlist[0].ToString(), strlist[1].ToString());
+                    }
+                }
+            }
+        }
         /*
         private static void ProcessDirs(string[] pretypes, string outputfile)
         {
@@ -810,18 +844,5 @@ end
         }
         */
 
-        
-
-        
-
-        
-
-        
-
-        
-
-        
-
-        
     }
 }
