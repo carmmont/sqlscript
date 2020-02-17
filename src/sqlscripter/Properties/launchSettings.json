@@ -2,8 +2,8 @@
   "profiles": {
     "sqlscripter": {
       "commandName": "Project",
-      "commandLineArgs": "script -S .\\SQL2017 -U sa -P Corp123! -d DIGITAL -i \"C:\\Temp\\sql\\index.txt\" --sql-version Version140 --file-version -sp \"Table|PIPPO\" -o \"C:\\Temp\\sql\"",
-      "workingDirectory": "e:\\work\\dpi"
+      "commandLineArgs": "dbindex -S .\\SQL2017 -U sa -P Corp123! -d TEST3 -i index.txt",
+      "workingDirectory": "C:\\Temp\\sql\\test3"
     }
   }
 }

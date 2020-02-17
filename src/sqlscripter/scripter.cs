@@ -52,7 +52,7 @@ class scripter {
             type = "FUNCTION";
         }
 
-        if ("UserDefinedType" == oi.type)
+        if (("UserDefinedType" == oi.type) || ("UserDefinedDataType" == oi.type) || ("UserDefinedTableType" == oi.type))
         {
             type = "TYPE";
         }
@@ -383,7 +383,12 @@ class scripter {
                 objs[0] = db.UserDefinedFunctions[oi.name, oi.schema];
                 check_oi(objs[0], oi);
                 prefix = ScriptDrop(scripter, objs);
-                
+            }
+
+            if ("UserDefinedTableType" == oi.type)
+            {
+                objs[0] = db.UserDefinedTableTypes[oi.name, oi.schema];
+                check_oi(objs[0], oi);
             }
 
             if ("UserDefinedType" == oi.type)

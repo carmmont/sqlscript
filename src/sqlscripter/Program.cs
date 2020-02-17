@@ -215,7 +215,7 @@ end
                 var querymode = command.Option("--query-mode", "Use object query for objects", CommandOptionType.NoValue);
                 var one_stored = command.Option("--one-stored", "Generate one stored dependency", CommandOptionType.SingleValue);
                 var include_schemas = command.Option("-sc | --schema", "Database schemas to include in the output", CommandOptionType.MultipleValue);
-
+      
                 command.OnExecute( () =>
                 {
                     StringCollection schemas = new StringCollection();
@@ -276,8 +276,6 @@ end
                     
                         add_urns_from_collection(tc, urns, (!nouseprogress.HasValue()));
 
-                        
-
                         if (fast)
                         {
                             add_urn_from_query(db, "P", (sp, sch) => db.StoredProcedures[sp, sch].Urn, urns, (!nouseprogress.HasValue())
@@ -312,17 +310,21 @@ end
                         }
                         else
                         {
-
                             var ff = server.Databases[sqldb.Value()].UserDefinedFunctions;
 
                             add_urns_from_collection(ff, urns);
                         }
 
+                        var ut = server.Databases[sqldb.Value()].UserDefinedDataTypes;
+                        add_urns_from_collection(ut, urns);
+
                         var tt = server.Databases[sqldb.Value()].UserDefinedTypes;
-
                         add_urns_from_collection(tt, urns);
-                    }
 
+                        var dt = server.Databases[sqldb.Value()].UserDefinedTableTypes;
+                        add_urns_from_collection(dt, urns);
+
+                    }
                     //string s = urns[0].GetAttribute("Schema");
 
                     //(?m)(?<=\@Schema=)'(.+?)'
@@ -467,7 +469,6 @@ end
 
             commandLineApplication.Command("build", command => 
             {    
-                
                 command.Options.AddRange(command.Parent.Options);
 
                 var indexfiles = command.Option("-i | --index", "Input Index File", CommandOptionType.MultipleValue);
