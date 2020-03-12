@@ -2,8 +2,8 @@
   "profiles": {
     "sqlscripter": {
       "commandName": "Project",
-      "commandLineArgs": "dbindex -S .\\SQL2017 -U sa -P Corp123! -d TEST3 -i index.txt",
-      "workingDirectory": "C:\\Temp\\sql\\test3"
+      "commandLineArgs": "coverage -S localhost -U sa -P Password12# -d DBMAINT -i .\\Test\\Unit\\CollectAll.sql  -t 10000 --save c:\\temp\\out.xml",
+      "workingDirectory": "E:\\Work\\Source\\DBMAINT"
     }
   }
 }

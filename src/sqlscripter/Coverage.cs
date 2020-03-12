@@ -159,7 +159,12 @@ namespace sqlscripter
             
         }
 
-        public Result Execute(bool execute)
+        //public Result Execute(bool execute)
+        //{
+        //    return Execute(execute, -1);
+
+        //}
+        public Result Execute(bool execute, int command_timeout)
         {
 
             if(null == _result.query_hash || 0 == _result.query_hash.Count)
@@ -213,6 +218,7 @@ namespace sqlscripter
                 {
                     conn.Open();
                     SqlCommand cmd = conn.CreateCommand();
+                    if (command_timeout >= 0 ) { cmd.CommandTimeout = command_timeout; }
 
                     cmd.CommandText = $"USE {_db};"; 
                     cmd.ExecuteNonQuery();

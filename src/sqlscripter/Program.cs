@@ -562,6 +562,7 @@ end
                  to count only what you are running and not previous runs.
                  Do Not use in a production system.", CommandOptionType.NoValue);
                 var no_exec = command.Option("-n | --no-exec", @"Do not Run the procedure.", CommandOptionType.NoValue);
+                var tout_exec = command.Option("-t | --timeout-exec", @"Sql executions timeout.", CommandOptionType.SingleValue);
                 var datail = command.Option("--detail", @"Provide the list of not covered query_hash", CommandOptionType.NoValue);
                 var save = command.Option("--save", @"save a test result with performance and coverage", CommandOptionType.SingleValue);
                 command.OnExecute(() =>
@@ -589,11 +590,17 @@ end
                         db.ExecuteNonQuery("DBCC FREEPROCCACHE");
                     }
 
+                    int timeout = -1;
+                    if (tout_exec.HasValue())
+                    {
+                        timeout = Convert.ToInt32(tout_exec.Value());
+                    }
+
                     foreach (string statement in statements.Values)
                     {                        
                         string sql = statement;
 
-                        handle_coverage(db, sql, !no_exec.HasValue(), datail.HasValue(), save_path); 
+                        handle_coverage(db, sql, !no_exec.HasValue(), datail.HasValue(), save_path, timeout); 
                     }
 
                     foreach (string indexfile in indexfiles.Values)
@@ -601,7 +608,7 @@ end
                         string[] lines = System.IO.File.ReadAllLines(indexfile);
                         string sql = string.Join("\r\n", lines);
 
-                        handle_coverage(db, sql, !no_exec.HasValue(), datail.HasValue(), save_path);
+                        handle_coverage(db, sql, !no_exec.HasValue(), datail.HasValue(), save_path, timeout);
                         
                     }
 
@@ -719,13 +726,13 @@ end
             }
         }
 
-        private static void handle_coverage(Database db, string sql, bool exec, bool detail = false, string save_path = null)
+        private static void handle_coverage(Database db, string sql, bool exec, bool detail = false, string save_path = null, int execution_timeout=-1)
         {
             Coverage coverage = new Coverage();
 
             coverage.compile(db, sql);
 
-            Result res = coverage.Execute(exec);
+            Result res = coverage.Execute(exec, execution_timeout);
 
             double p = (res.executed / res.total) * 100;
 
